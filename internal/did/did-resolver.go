@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -115,7 +115,7 @@ func (r *DidResolver) Resolve(did string) (DidResolutionResult, error) {
 
 // ParseDidDocument parses a DID document from a JSON file
 func ParseDidDocument(filePath string) (DidResolutionResult, error) {
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return DidResolutionResult{}, err
 	}
