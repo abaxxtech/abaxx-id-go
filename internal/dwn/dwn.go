@@ -5,20 +5,6 @@ import (
 	"io"
 )
 
-type DataStore interface {
-	Open() error
-	Close() error
-}
-
-type EventLog interface {
-	Open() error
-	Close() error
-}
-
-type MessageStore interface {
-	Open() error
-	Close() error
-}
 
 type MethodHandler interface {
 	Handle(request *HandlerRequest) (UnionMessageReply, error)
@@ -32,18 +18,6 @@ type UnionMessageReply struct {
 	Status Status
 }
 
-type Status struct {
-	Code   int
-	Detail string
-}
-
-type DwnConfig struct {
-	DidResolver  *DidResolver
-	TenantGate   TenantGate
-	MessageStore MessageStore
-	DataStore    DataStore
-	EventLog     EventLog
-}
 
 type Dwn struct {
 	methodHandlers map[string]MethodHandler
