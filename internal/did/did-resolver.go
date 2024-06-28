@@ -1,7 +1,11 @@
 package did
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"time"
 )
 
@@ -69,8 +73,8 @@ func NewDidResolver(resolvers []DidMethodResolver, cache Cache) *DidResolver {
 
 	if resolvers == nil || len(resolvers) == 0 {
 		resolvers = []DidMethodResolver{
-			NewDidIonResolver(),
-			NewDidKeyResolver(),
+			// NewDidIonResolver(),
+			// NewDidKeyResolver(),
 		}
 	}
 
@@ -107,4 +111,57 @@ func (r *DidResolver) Resolve(did string) (DidResolutionResult, error) {
 
 	r.cache.Set(did, result)
 	return result, nil
+}
+
+// ParseDidDocument parses a DID document from a JSON file
+func ParseDidDocument(filePath string) (DidResolutionResult, error) {
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return DidResolutionResult{}, err
+	}
+
+	var didDoc DidResolutionResult
+	if err := json.Unmarshal(data, &didDoc); err != nil {
+		return DidResolutionResult{}, err
+	}
+
+	return didDoc, nil
+}
+
+// FetchDidDocument fetches a DID document from a URL
+func FetchDidDocument(url string) (DidResolutionResult, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return DidResolutionResult{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return DidResolutionResult{}, errors.New("failed to fetch DID document")
+	}
+
+	var didDoc DidResolutionResult
+	if err := json.NewDecoder(resp.Body).Decode(&didDoc); err != nil {
+		return DidResolutionResult{}, err
+	}
+
+	return didDoc, nil
+}
+
+func (r *DidResolver) ResolveFromFile(filePath string) (DidResolutionResult, error) {
+	didDoc, err := ParseDidDocument(filePath)
+	if err != nil {
+		return DidResolutionResult{}, err
+	}
+	r.cache.Set(didDoc.DidDocument.(string), didDoc)
+	return didDoc, nil
+}
+
+func (r *DidResolver) ResolveFromURL(url string) (DidResolutionResult, error) {
+	didDoc, err := FetchDidDocument(url)
+	if err != nil {
+		return DidResolutionResult{}, err
+	}
+	r.cache.Set(didDoc.DidDocument.(string), didDoc)
+	return didDoc, nil
 }

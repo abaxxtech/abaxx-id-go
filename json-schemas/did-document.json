@@ -1,0 +1,22 @@
+{
+  "@context": "https://www.w3.org/ns/did/v1",
+  "id": "did:example:123456789abcdefghi",
+  "verificationMethod": [
+    {
+      "id": "did:example:123456789abcdefghi#keys-1",
+      "type": "Ed25519VerificationKey2018",
+      "controller": "did:example:123456789abcdefghi",
+      "publicKeyBase58": "H3C2AVvLMmQ1hi6PzZV9o6Y8b1m9i1i1i1i1i1i1i1i1"
+    }
+  ],
+  "authentication": [
+    "did:example:123456789abcdefghi#keys-1"
+  ],
+  "service": [
+    {
+      "id": "did:example:123456789abcdefghi#vcs",
+      "type": "VerifiableCredentialService",
+      "serviceEndpoint": "https://example.com/vc/"
+    }
+  ]
+}
