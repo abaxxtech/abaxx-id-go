@@ -1,21 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://identity.foundation/dwn/json-schemas/number-range-filter.json",
+  "$id": "https://identity.foundation/dwn/json-schemas/string-range-filter.json",
   "type": "object",
   "minProperties": 1,
   "additionalProperties": false,
   "properties": {
     "gt": {
-      "type": "number"
+      "type": "string"
     },
     "gte": {
-      "type": "number"
+      "type": "string"
     },
     "lt": {
-      "type": "number"
+      "type": "string"
     },
     "lte": {
-      "type": "number"
+      "type": "string"
     }
   },
   "dependencies": {

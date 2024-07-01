@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://identity.foundation/dwn/json-schemas/records-filter.json",
   "type": "object",
   "minProperties": 1,
@@ -12,19 +12,51 @@
       "type": "string"
     },
     "author": {
-      "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/definitions/did"
+      "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/did"
     },
     "attester": {
-      "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/definitions/did"
+      "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/did"
     },
     "recipient": {
-      "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/definitions/did"
+      "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/did"
     },
     "contextId": {
       "type": "string"
     },
     "schema": {
       "type": "string"
+    },
+    "tags": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+              "startsWith": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "$ref": "https://identity.foundation/dwn/json-schemas/string-range-filter.json"
+          }, {
+            "$ref": "https://identity.foundation/dwn/json-schemas/number-range-filter.json"
+          }
+        ]
+      }
     },
     "recordId": {
       "type": "string"
@@ -50,10 +82,10 @@
       "additionalProperties": false,
       "properties": {
         "from": {
-          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/definitions/date-time"
+          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/date-time"
         },
         "to": {
-          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/definitions/date-time"
+          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/date-time"
         }
       }
     },
@@ -63,10 +95,10 @@
       "additionalProperties": false,
       "properties": {
         "from": {
-          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/definitions/date-time"
+          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/date-time"
         },
         "to": {
-          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/definitions/date-time"
+          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/date-time"
         }
       }
     },
@@ -76,10 +108,10 @@
       "additionalProperties": false,
       "properties": {
         "from": {
-          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/definitions/date-time"
+          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/date-time"
         },
         "to": {
-          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/definitions/date-time"
+          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/date-time"
         }
       }
     }
@@ -90,14 +122,20 @@
         {
           "properties": {
             "published": {
-              "enum": [true]
+              "enum": [
+                true
+              ]
             }
           },
-          "required": ["published"]
+          "required": [
+            "published"
+          ]
         },
         {
           "not": {
-            "required": ["published"]
+            "required": [
+              "published"
+            ]
           }
         }
       ]

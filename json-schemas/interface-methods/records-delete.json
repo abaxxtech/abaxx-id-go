@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://identity.foundation/dwn/json-schemas/records-delete.json",
   "type": "object",
   "additionalProperties": false,
@@ -18,7 +18,8 @@
         "interface",
         "method",
         "messageTimestamp",
-        "recordId"
+        "recordId",
+        "prune"
       ],
       "properties": {
         "interface": {
@@ -34,10 +35,13 @@
           "type": "string"
         },
         "messageTimestamp": {
-          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/definitions/date-time"
+          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/date-time"
         },
         "recordId": {
           "type": "string"
+        },
+        "prune": {
+          "type": "boolean"
         }
       }
     }
