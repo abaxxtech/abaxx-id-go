@@ -17,3 +17,4 @@ type GenericSignaturePayload struct {
 	PermissionsGrantId string `json:"permissionsGrantId,omitempty"`
 	ProtocolRole       string `json:"protocolRole,omitempty"`
 }
+

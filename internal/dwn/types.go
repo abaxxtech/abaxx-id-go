@@ -5,6 +5,7 @@ import (
 )
 
 // Types that are part of the public interface of the DWN.
+type DID string
 type Tenant string
 type MessageCid string
 type DataCid string

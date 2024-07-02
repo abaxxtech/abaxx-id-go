@@ -50,11 +50,12 @@ type MessageStore interface {
 	// MessageStoreOptions which only contains an 'AbortSignal' --
 	// we would possibly do this via channels later.
 
+	// interface[} -> DwnMessage
 	Put(Tenant,
-		DwnMessage,
+		interface{},
 		IndexableKeyValues) (err error)
 
-	Get(Tenant, MessageCid) (err error)
+	Get(Tenant, MessageCid) (msg interface{}, err error)
 
 	Query(tenant Tenant, filters []Filter,
 		sort MessageSort,

@@ -3,8 +3,157 @@ package dwn
 import (
 	"errors"
 	"io"
+
+	"github.com/abaxxtech/abaxx-id-go/internal/did"
 )
 
+type GeneralJws struct {
+	// base64url contents
+	Payload    string `json:"payload"`
+	Signatures []struct {
+		Protected string `json:"protected"`
+		Signature string `json:"signature"`
+	} `json:"signatures"`
+}
+
+type Authorization interface {
+	signature() GeneralJws
+}
+
+type PlainAuthorization struct {
+	Signature GeneralJws
+}
+
+func (a *PlainAuthorization) signature() GeneralJws {
+	return a.Signature
+}
+
+type AuthorizationDelegatedGrant struct {
+	Signature            GeneralJws `json:"signature"`
+	AuthorDelegatedGrant string     `json:"authorDelegatedGrant"`
+}
+
+func (a *AuthorizationDelegatedGrant) signature() GeneralJws {
+	return a.Signature
+}
+
+type AuthorizationOwner struct {
+	Signature      GeneralJws `json:"signature"`
+	OwnerSignature GeneralJws `json:"ownerSignature"`
+
+	AuthorDelegatedGrant DelegatedGrant `json:"authorDelegatedGrant,omitempty"`
+	OwnerDelegatedGrant  DelegatedGrant `json:"ownerDelegatedGrant,omitempty"`
+}
+
+func (a *AuthorizationOwner) signature() GeneralJws {
+	return a.Signature
+}
+
+type DelegatedGrant struct {
+	RecordId      string
+	Authorization *AuthorizationOwner
+	EncodedData   string
+}
+
+type RecordsRead struct {
+	Authorization AuthorizationDelegatedGrant `json:"authorization"`
+	Descriptor    struct {
+		Interface string
+		Method    string
+		// iso timestamp
+		MessageTimestamp string
+		// TODO make this properly typed.
+		Filter map[string]interface{}
+	} `json:"descriptor"`
+}
+
+type Descriptor struct {
+	// Required
+	Interface        string
+	Method           string
+	DataCid          DataCid
+	DataSize         int64
+	DateCreated      string
+	MessageTimestamp string
+	DataFormat       string
+
+	Recipient     DID
+	Protocol      string
+	ProtocolPath  string
+	Schema        string
+	Tags          map[string]interface{}
+	ParentId      MessageCid
+	Published     bool
+	DatePublished string
+}
+
+type RecordsWrite struct {
+	// These three are required
+	RecordId      string             `json:"recordId"`
+	Authorization AuthorizationOwner `json:"authorization"`
+	Descriptor    Descriptor         `json:"descriptor"`
+
+	ContextId   string     `json:"contextId,omitempty"`
+	Attestation GeneralJws `json:"attestation,omitempty"`
+	Encryption  struct {
+		Algorithm            string `json:"algorithm"`
+		InitializationVector string `json:"initializationVector"`
+		KeyEncryption        []struct {
+			RootKeyId string
+			// string-based enum of:
+			// dataFormats | protocolContext | protocolPath | schemas
+			DerivationScheme          string
+			DerivedPublicKey          map[string]interface{}
+			Algorithm                 string
+			EncryptedKey              string
+			InitializationVector      string
+			EmphemeralPublicKey       map[string]interface{}
+			MessageAuthenticationCode string
+		} `json:"keyEncryption"`
+	} `json:"encryption"`
+}
+
+type MessagesGet struct {
+	Authorization Authorization `json:"authorization"`
+	Descriptor    struct {
+		Interface        string // const==Messages
+		Method           string // const==Get
+		MessageTimestamp string
+		MessageCids      []string `json:"messageCids,omitempty"`
+	} `json:"descriptor"`
+}
+
+func (m *AuthorizationDelegatedGrant) Author() string {
+
+	return "none"
+}
+
+func (m *PlainAuthorization) Author() string {
+	// if authorDelegatedGrant != nil
+	//   Author = GetSigner(message.authorization.authorDelegatedGrant)
+	// else
+	//  Author = getSigner(m)
+
+	// if m.Signature == nil {
+	// 	return nil
+	// }
+
+	// TODO Utility functions for handling signatures
+
+	// path:
+	//  := m.Signature.Signatures[0]
+	// extractDid( getKid ( checkThis ) )
+
+	return "none"
+}
+
+type PermissionsGrant struct {
+}
+
+// TODO beef this up
+type MessageHandler interface {
+	Handle(dwn *Dwn) error
+}
 
 type MethodHandler interface {
 	Handle(request *HandlerRequest) (UnionMessageReply, error)
@@ -18,10 +167,9 @@ type UnionMessageReply struct {
 	Status Status
 }
 
-
 type Dwn struct {
 	methodHandlers map[string]MethodHandler
-	didResolver    *DidResolver
+	didResolver    *did.DidResolver
 	messageStore   MessageStore
 	dataStore      DataStore
 	eventLog       EventLog
@@ -30,7 +178,7 @@ type Dwn struct {
 
 func NewDwn(config DwnConfig) (*Dwn, error) {
 	if config.DidResolver == nil {
-		config.DidResolver = NewDidResolver()
+		config.DidResolver = did.NewDidResolver()
 	}
 	if config.TenantGate == nil {
 		config.TenantGate = NewAllowAllTenantGate()
@@ -133,5 +281,10 @@ func (d *Dwn) validateMessageIntegrity(rawMessage GenericMessage) error {
 		return err
 	}
 
+	return nil
+}
+
+func (dwn *Dwn) authenticate(auth Authorization) error {
+	// TODO implement authentication logic
 	return nil
 }

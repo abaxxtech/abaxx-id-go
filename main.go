@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/abaxxtech/abaxx-id-go/internal/did"
+	_ "github.com/abaxxtech/abaxx-id-go/internal/dwn"
 )
 
 func main() {
