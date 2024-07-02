@@ -4,13 +4,11 @@ import (
 	"io"
 )
 
-
-
 type DataStore interface {
 	Open() error
 	Close() error
 
-	// Put a data blog into the data store.  The DataCID is calculated from the
+	// Put a data blob into the data store.  The DataCID is calculated from the
 	// dataStream, and returned.  If it doesn't match dataCid input,
 	// an error results, and nothing is written.
 	Put(tenant Tenant, messageCid MessageCid, dataCid DataCid,
@@ -50,7 +48,7 @@ type EventLog interface {
 // What are we storing in the MessageStore? What's in the DwnMessage?
 type StoredMessage struct {
 	Authorization map[string]interface{}
-        Descriptor map[string]interface{}
+	Descriptor    map[string]interface{}
 }
 
 type MessageStore interface {
@@ -76,7 +74,7 @@ type MessageStore interface {
 
 	Open() error
 	Close() error
-}
+ }
 
 // The data store can index items for each message.
 // These are the types to support that.
@@ -177,4 +175,3 @@ type RangeValue interface {
 func (s S) isRangeValue() {}
 func (i I) isRangeValue() {}
 func (f F) isRangeValue() {}
-

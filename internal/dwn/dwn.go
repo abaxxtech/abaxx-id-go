@@ -1,12 +1,14 @@
 package dwn
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/abaxxtech/abaxx-id-go/internal/did"
 	"github.com/abaxxtech/abaxx-id-go/internal/types"
-	_ "github.com/go-jose/go-jose/v4"
+	jose "github.com/go-jose/go-jose/v4"
 )
 
 type Signature struct {
@@ -15,7 +17,7 @@ type Signature struct {
 }
 
 type GeneralJws struct {
-	Payload    string `json:"payload"`
+	Payload    string      `json:"payload"`
 	Signatures []Signature `json:"signatures"`
 }
 
@@ -24,12 +26,13 @@ type Authorization interface {
 }
 
 type PlainAuthorization struct {
-	Signature GeneralJws
+	Signature GeneralJws `json:"signature"`
 }
 
 func (a PlainAuthorization) signature() GeneralJws {
 	return a.Signature
 }
+
 // Three types of signatures:
 // plain -- signature only
 // AuthOwner
@@ -37,10 +40,9 @@ func (a PlainAuthorization) signature() GeneralJws {
 // AuthDelegatedGrant
 // - Signature, AuthorDelegatedGrant
 
-
 type AuthorizationDelegatedGrant struct {
-	Signature            GeneralJws `json:"signature"`
-	AuthorDelegatedGrant string     `json:"authorDelegatedGrant"`
+	Signature            GeneralJws      `json:"signature"`
+	AuthorDelegatedGrant *DelegatedGrant `json:"authorDelegatedGrant"`
 }
 
 func (a *AuthorizationDelegatedGrant) signature() GeneralJws {
@@ -59,16 +61,15 @@ func (a *AuthorizationOwner) signature() GeneralJws {
 	return a.Signature
 }
 
+type DelegatedGrantDescriptor struct {
+	RecordId    string `json:"recordId"`
+	EncodedData string `json:"encodedData"`
+}
+
 type DelegatedGrant struct {
 	// Authorization -> Signature --- ??
-	Authorization struct {
-		Signature GeneralJws `json:"signature"`
-	} `json:"authorization"`
-
-	Descriptor struct {
-		RecordId string `json:"recordId"`
-		EncodedData string `json:"encodedData"`
-	} `json:"descriptor"`
+	Authorization PlainAuthorization       `json:"authorization"`
+	Descriptor    DelegatedGrantDescriptor `json:"descriptor"`
 }
 
 type RecordsRead struct {
@@ -179,9 +180,9 @@ type TenantGate interface {
 	IsTenant(tenant string) (bool, error)
 }
 
-type AllowAllTenants struct {}
+type AllowAllTenants struct{}
 
-func (o *AllowAllTenants) IsTenant(tenant string) (bool, error) {
+func (o AllowAllTenants) IsTenant(tenant string) (bool, error) {
 	return true, nil
 }
 
@@ -202,8 +203,6 @@ type Dwn struct {
 	tenantGate     TenantGate
 }
 
-
-
 func NewDwn(config DwnConfig) (*Dwn, error) {
 	if config.DidResolver == nil {
 		config.DidResolver = did.NewDidResolver(nil, nil)
@@ -213,11 +212,11 @@ func NewDwn(config DwnConfig) (*Dwn, error) {
 	}
 
 	dwn := &Dwn{
-		didResolver:  config.DidResolver,
-		tenantGate:   config.TenantGate,
-		messageStore: config.MessageStore,
-		dataStore:    config.DataStore,
-		eventLog:     config.EventLog,
+		didResolver:    config.DidResolver,
+		tenantGate:     config.TenantGate,
+		messageStore:   config.MessageStore,
+		dataStore:      config.DataStore,
+		eventLog:       config.EventLog,
 		methodHandlers: map[string]MethodHandler{
 			// "EventsGet":          NewEventsGetHandler(config.DidResolver, config.EventLog),
 			// "EventsQuery":        NewEventsQueryHandler(config.DidResolver, config.EventLog),
@@ -313,10 +312,21 @@ func (d *Dwn) validateMessageIntegrity(rawMessage types.GenericMessage) error {
 }
 
 func (dwn *Dwn) authenticate(auth Authorization) error {
-	// re-serialize... boo.
-	
-	
-	
+	reser, err := json.Marshal(auth.signature())
+	if err != nil {
+		return err
+	}
+
+	sig, err := jose.ParseSigned(string(reser),
+		[]jose.SignatureAlgorithm{jose.EdDSA, jose.HS256, jose.HS384})
+	if err != nil {
+		return err
+	}
+	//fmt.Println("sig", sig)
+	for i, s := range sig.Signatures {
+		fmt.Println(i, "keyid", s.Header.KeyID)
+	}
+
 	// TODO implement authentication logic
 	return nil
 }
