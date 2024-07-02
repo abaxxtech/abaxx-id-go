@@ -5,15 +5,18 @@ import (
 	"io"
 
 	"github.com/abaxxtech/abaxx-id-go/internal/did"
+	"github.com/abaxxtech/abaxx-id-go/internal/types"
+	_ "github.com/go-jose/go-jose/v4"
 )
 
+type Signature struct {
+	Protected string `json:"protected"`
+	Signature string `json:"signature"`
+}
+
 type GeneralJws struct {
-	// base64url contents
 	Payload    string `json:"payload"`
-	Signatures []struct {
-		Protected string `json:"protected"`
-		Signature string `json:"signature"`
-	} `json:"signatures"`
+	Signatures []Signature `json:"signatures"`
 }
 
 type Authorization interface {
@@ -24,9 +27,16 @@ type PlainAuthorization struct {
 	Signature GeneralJws
 }
 
-func (a *PlainAuthorization) signature() GeneralJws {
+func (a PlainAuthorization) signature() GeneralJws {
 	return a.Signature
 }
+// Three types of signatures:
+// plain -- signature only
+// AuthOwner
+// - Signature, AuthorDelegatedGrant, OwnerSignature, OwnerDelegatedGrant
+// AuthDelegatedGrant
+// - Signature, AuthorDelegatedGrant
+
 
 type AuthorizationDelegatedGrant struct {
 	Signature            GeneralJws `json:"signature"`
@@ -41,8 +51,8 @@ type AuthorizationOwner struct {
 	Signature      GeneralJws `json:"signature"`
 	OwnerSignature GeneralJws `json:"ownerSignature"`
 
-	AuthorDelegatedGrant DelegatedGrant `json:"authorDelegatedGrant,omitempty"`
-	OwnerDelegatedGrant  DelegatedGrant `json:"ownerDelegatedGrant,omitempty"`
+	AuthorDelegatedGrant *DelegatedGrant `json:"authorDelegatedGrant,omitempty"`
+	OwnerDelegatedGrant  *DelegatedGrant `json:"ownerDelegatedGrant,omitempty"`
 }
 
 func (a *AuthorizationOwner) signature() GeneralJws {
@@ -50,9 +60,15 @@ func (a *AuthorizationOwner) signature() GeneralJws {
 }
 
 type DelegatedGrant struct {
-	RecordId      string
-	Authorization *AuthorizationOwner
-	EncodedData   string
+	// Authorization -> Signature --- ??
+	Authorization struct {
+		Signature GeneralJws `json:"signature"`
+	} `json:"authorization"`
+
+	Descriptor struct {
+		RecordId string `json:"recordId"`
+		EncodedData string `json:"encodedData"`
+	} `json:"descriptor"`
 }
 
 type RecordsRead struct {
@@ -114,7 +130,7 @@ type RecordsWrite struct {
 }
 
 type MessagesGet struct {
-	Authorization Authorization `json:"authorization"`
+	Authorization PlainAuthorization `json:"authorization"`
 	Descriptor    struct {
 		Interface        string // const==Messages
 		Method           string // const==Get
@@ -163,6 +179,16 @@ type TenantGate interface {
 	IsTenant(tenant string) (bool, error)
 }
 
+type AllowAllTenants struct {}
+
+func (o *AllowAllTenants) IsTenant(tenant string) (bool, error) {
+	return true, nil
+}
+
+func NewAllowAllTenantGate() TenantGate {
+	return &AllowAllTenants{}
+}
+
 type UnionMessageReply struct {
 	Status Status
 }
@@ -176,9 +202,11 @@ type Dwn struct {
 	tenantGate     TenantGate
 }
 
+
+
 func NewDwn(config DwnConfig) (*Dwn, error) {
 	if config.DidResolver == nil {
-		config.DidResolver = did.NewDidResolver()
+		config.DidResolver = did.NewDidResolver(nil, nil)
 	}
 	if config.TenantGate == nil {
 		config.TenantGate = NewAllowAllTenantGate()
@@ -191,18 +219,18 @@ func NewDwn(config DwnConfig) (*Dwn, error) {
 		dataStore:    config.DataStore,
 		eventLog:     config.EventLog,
 		methodHandlers: map[string]MethodHandler{
-			"EventsGet":          NewEventsGetHandler(config.DidResolver, config.EventLog),
-			"EventsQuery":        NewEventsQueryHandler(config.DidResolver, config.EventLog),
-			"MessagesGet":        NewMessagesGetHandler(config.DidResolver, config.MessageStore, config.DataStore),
-			"PermissionsGrant":   NewPermissionsGrantHandler(config.DidResolver, config.MessageStore, config.EventLog),
-			"PermissionsRequest": NewPermissionsRequestHandler(config.DidResolver, config.MessageStore, config.EventLog),
-			"PermissionsRevoke":  NewPermissionsRevokeHandler(config.DidResolver, config.MessageStore, config.EventLog),
-			"ProtocolsConfigure": NewProtocolsConfigureHandler(config.DidResolver, config.MessageStore, config.DataStore, config.EventLog),
-			"ProtocolsQuery":     NewProtocolsQueryHandler(config.DidResolver, config.MessageStore, config.DataStore),
-			"RecordsDelete":      NewRecordsDeleteHandler(config.DidResolver, config.MessageStore, config.DataStore, config.EventLog),
-			"RecordsQuery":       NewRecordsQueryHandler(config.DidResolver, config.MessageStore, config.DataStore),
-			"RecordsRead":        NewRecordsReadHandler(config.DidResolver, config.MessageStore, config.DataStore),
-			"RecordsWrite":       NewRecordsWriteHandler(config.DidResolver, config.MessageStore, config.DataStore, config.EventLog),
+			// "EventsGet":          NewEventsGetHandler(config.DidResolver, config.EventLog),
+			// "EventsQuery":        NewEventsQueryHandler(config.DidResolver, config.EventLog),
+			// "MessagesGet":        NewMessagesGetHandler(config.DidResolver, config.MessageStore, config.DataStore),
+			// "PermissionsGrant":   NewPermissionsGrantHandler(config.DidResolver, config.MessageStore, config.EventLog),
+			// "PermissionsRequest": NewPermissionsRequestHandler(config.DidResolver, config.MessageStore, config.EventLog),
+			// "PermissionsRevoke":  NewPermissionsRevokeHandler(config.DidResolver, config.MessageStore, config.EventLog),
+			// "ProtocolsConfigure": NewProtocolsConfigureHandler(config.DidResolver, config.MessageStore, config.DataStore, config.EventLog),
+			// "ProtocolsQuery":     NewProtocolsQueryHandler(config.DidResolver, config.MessageStore, config.DataStore),
+			// "RecordsDelete":      NewRecordsDeleteHandler(config.DidResolver, config.MessageStore, config.DataStore, config.EventLog),
+			// "RecordsQuery":       NewRecordsQueryHandler(config.DidResolver, config.MessageStore, config.DataStore),
+			// "RecordsRead":        NewRecordsReadHandler(config.DidResolver, config.MessageStore, config.DataStore),
+			// "RecordsWrite":       NewRecordsWriteHandler(config.DidResolver, config.MessageStore, config.DataStore, config.EventLog),
 		},
 	}
 
@@ -239,7 +267,7 @@ func (d *Dwn) Close() error {
 	return nil
 }
 
-func (d *Dwn) ProcessMessage(tenant string, rawMessage GenericMessage, dataStream io.Reader) (UnionMessageReply, error) {
+func (d *Dwn) ProcessMessage(tenant string, rawMessage types.GenericMessage, dataStream io.Reader) (UnionMessageReply, error) {
 	if err := d.validateTenant(tenant); err != nil {
 		return UnionMessageReply{Status: Status{Code: 401, Detail: err.Error()}}, nil
 	}
@@ -272,19 +300,27 @@ func (d *Dwn) validateTenant(tenant string) error {
 	return nil
 }
 
-func (d *Dwn) validateMessageIntegrity(rawMessage GenericMessage) error {
+func (d *Dwn) validateMessageIntegrity(rawMessage types.GenericMessage) error {
 	if rawMessage.Descriptor.Interface == "" || rawMessage.Descriptor.Method == "" {
 		return errors.New("both interface and method must be present")
 	}
 
-	if err := ValidateJsonSchema(rawMessage); err != nil {
-		return err
-	}
+	// if err := ValidateJsonSchema(rawMessage); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
 
 func (dwn *Dwn) authenticate(auth Authorization) error {
+	// re-serialize... boo.
+	
+	
+	
 	// TODO implement authentication logic
+	return nil
+}
+
+func (dwn *Dwn) authorize(tenant Tenant, auth Authorization) error {
 	return nil
 }

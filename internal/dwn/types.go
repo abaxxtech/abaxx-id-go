@@ -1,7 +1,7 @@
 package dwn
 
 import (
-	"io"
+	"github.com/abaxxtech/abaxx-id-go/internal/did"
 )
 
 // Types that are part of the public interface of the DWN.
@@ -19,7 +19,7 @@ type Status struct {
 }
 
 type DwnConfig struct {
-	DidResolver  *DidResolver
+	DidResolver  *did.DidResolver
 	TenantGate   TenantGate
 	MessageStore MessageStore
 	DataStore    DataStore

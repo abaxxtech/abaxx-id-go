@@ -1,6 +1,7 @@
 package dwn
 
 import (
+	"errors"
 	"io"
 
 	"github.com/abaxxtech/abaxx-id-go/internal/types"
@@ -27,10 +28,10 @@ func validateCids(cids []string) error {
 		}
 		// TODO verify these values and put them into a const
 		if cid.Type() != 85 {
-			return error("Bad code")
+			return errors.New("Bad code")
 		}
 		if cid.Type() != 1 {
-			return error("Only support V1 for CIDs")
+			return errors.New("Only support V1 for CIDs")
 		}
 
 		// TODO Verify these values and put them into a const
@@ -39,10 +40,10 @@ func validateCids(cids []string) error {
 			return err
 		}
 		if de.Code != 18 {
-			return error("Only support sha2-256")
+			return errors.New("Only support sha2-256")
 		}
 		if de.Name != "sha2-256" {
-			return error("Only support sha2-256")
+			return errors.New("Only support sha2-256")
 		}
 	}
 
@@ -58,16 +59,19 @@ func (message *MessagesGet) Handle(tenant Tenant, dwn *Dwn) error {
 	if err != nil {
 		return err
 	}
-	err := dwn.authenticate(message.Authorization)
+	err = dwn.authenticate(message.Authorization)
 	if err != nil {
 		return err
 	}
-	err := dwn.authorize(tenant, message.Authorization)
+	err = dwn.authorize(tenant, message.Authorization)
+	if err != nil {
+		return err
+	}
 
 	// set of message cids....
 	results := make([]interface{}, len(message.Descriptor.MessageCids))
 	for i, cid := range message.Descriptor.MessageCids {
-		res, err := dwn.messageStore.Get(tenant, cid)
+		res, err := dwn.messageStore.Get(tenant, MessageCid(cid))
 		if err != nil {
 			return err
 		}

@@ -4,6 +4,8 @@ import (
 	"io"
 )
 
+
+
 type DataStore interface {
 	Open() error
 	Close() error
@@ -43,6 +45,12 @@ type EventLog interface {
 
 	// Test purposes
 	Clear() error
+}
+
+// What are we storing in the MessageStore? What's in the DwnMessage?
+type StoredMessage struct {
+	Authorization map[string]interface{}
+        Descriptor map[string]interface{}
 }
 
 type MessageStore interface {
