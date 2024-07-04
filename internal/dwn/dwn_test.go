@@ -2,10 +2,11 @@ package dwn
 
 import (
 	"encoding/json"
-	"errors"
+	"os"
 	"testing"
 
-	"github.com/abaxxtech/abaxx-id-go/internal/did"
+	jose "github.com/go-jose/go-jose/v4"
+	"github.com/stretchr/testify/assert"
 )
 
 const authSig = `
@@ -22,37 +23,6 @@ const authSig = `
 }
 `
 
-type StaticDidResolver struct {
-	method   string
-	did      string // the singular did we can resolve
-	document interface{}
-}
-
-func (o StaticDidResolver) Method() string {
-	return o.method
-}
-
-// TODO this seems to be a golang bug...really?
-type DidResolutionResult = did.DidResolutionResult
-
-func (o StaticDidResolver) Resolve(did string) (did.DidResolutionResult, error) {
-	if did != o.did {
-		return DidResolutionResult{},
-			errors.New("Static DID only knows" + o.did)
-	}
-
-	return DidResolutionResult{DidDocument: o.document}, nil
-}
-
-func NewStaticDidResolver(didjson string) *did.DidResolver {
-	return did.NewDidResolver([]did.DidMethodResolver{StaticDidResolver{
-		method:   "ion",
-		did:      "foobar",
-		document: "not yet!",
-	}},
-		nil,
-	)
-}
 
 func NewTestDwn() *Dwn {
 	dwn, err := NewDwn(DwnConfig{
@@ -67,6 +37,41 @@ func NewTestDwn() *Dwn {
 		panic(err)
 	}
 	return dwn
+}
+
+func TestReadDid(t *testing.T) {
+	content, err := os.ReadFile("did.json")
+	assert.NoError(t, err)
+
+	didInfo := fileDID{}
+	err = json.Unmarshal(content, &didInfo)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "ryan.rawson@abaxx.tech", didInfo.Id)
+	assert.Equal(t, "ryan.rawson@abaxx.tech", didInfo.Metadata.Email)
+
+	// find a key:
+	keystruct, err := didInfo.GetKeyById("#dwn-sig")
+	assert.NoError(t, err)
+
+	t.Log("keystruct", keystruct)
+	// re-serialize a key to import it:
+	keyBytes, err := json.Marshal(keystruct)
+	assert.NoError(t, err)
+
+	k := jose.JSONWebKey{}
+	err = k.UnmarshalJSON(keyBytes)
+	assert.NoError(t, err)
+
+	t.Log("key", k)
+	t.Log("ispublic?", k.IsPublic())
+	t.Log("valid?", k.Valid())
+
+	t.Log("the whole key struct", k)
+	x, err := k.MarshalJSON()
+	assert.NoError(t, err)
+	t.Log("serialize", string(x))
+	
 }
 
 func TestCreateAuthObjects(t *testing.T) {

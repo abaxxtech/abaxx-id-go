@@ -325,6 +325,11 @@ func (dwn *Dwn) authenticate(auth Authorization) error {
 	//fmt.Println("sig", sig)
 	for i, s := range sig.Signatures {
 		fmt.Println(i, "keyid", s.Header.KeyID)
+		// didResult, err := dwn.didResolver.Resolve(s.Header.KeyID)
+		// if err != nil {
+		// 	return err
+		// }
+		//fmt.Println(i, "result", didResult)
 	}
 
 	// TODO implement authentication logic

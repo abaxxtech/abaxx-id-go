@@ -98,6 +98,7 @@ func extractMethod(did string) string {
 	return ""
 }
 
+
 func (r *DidResolver) Resolve(did string) (DidResolutionResult, error) {
 	if err := Validate(did); err != nil {
 		return DidResolutionResult{}, err
