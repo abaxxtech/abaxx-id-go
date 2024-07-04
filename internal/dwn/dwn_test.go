@@ -40,7 +40,7 @@ func NewTestDwn() *Dwn {
 }
 
 func TestReadDid(t *testing.T) {
-	content, err := os.ReadFile("did.json")
+	content, err := os.ReadFile("testdata/did.json")
 	assert.NoError(t, err)
 
 	didInfo := fileDID{}
