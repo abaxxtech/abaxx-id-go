@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	jose "github.com/go-jose/go-jose/v4"
 	"github.com/stretchr/testify/assert"
+	jwk "github.com/lestrrat-go/jwx/v2/jwk"
 )
 
 const authSig = `
@@ -51,27 +51,35 @@ func TestReadDid(t *testing.T) {
 	assert.Equal(t, "ryan.rawson@abaxx.tech", didInfo.Metadata.Email)
 
 	// find a key:
-	keystruct, err := didInfo.GetKeyById("#dwn-sig")
+	// re-serialize a key to import it:
+	printKey(t, didInfo, "#dwn-enc")
+	printKey(t, didInfo, "#dwn-sig")
+	
+	
+}
+
+func printKey(t *testing.T, didInfo fileDID, keyid string) {
+	keystruct, err := didInfo.GetKeyById(keyid)
 	assert.NoError(t, err)
 
 	t.Log("keystruct", keystruct)
-	// re-serialize a key to import it:
+
 	keyBytes, err := json.Marshal(keystruct)
 	assert.NoError(t, err)
 
-	k := jose.JSONWebKey{}
-	err = k.UnmarshalJSON(keyBytes)
+	k1, err := jwk.ParseKey(keyBytes)
 	assert.NoError(t, err)
+	t.Log("jwk k1", k1)
 
-	t.Log("key", k)
-	t.Log("ispublic?", k.IsPublic())
-	t.Log("valid?", k.Valid())
+	t.Log("keyid", k1.KeyID())
+	t.Log("keyops", k1.KeyOps())
+	t.Log("keytype", k1.KeyType())
+	t.Log("algo", k1.Algorithm().String())
 
-	t.Log("the whole key struct", k)
-	x, err := k.MarshalJSON()
+	x, err := json.MarshalIndent(k1, "", "  ")
+
 	assert.NoError(t, err)
 	t.Log("serialize", string(x))
-	
 }
 
 func TestCreateAuthObjects(t *testing.T) {

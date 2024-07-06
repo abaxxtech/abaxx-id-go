@@ -3,12 +3,10 @@ package dwn
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 
 	"github.com/abaxxtech/abaxx-id-go/internal/did"
 	"github.com/abaxxtech/abaxx-id-go/internal/types"
-	jose "github.com/go-jose/go-jose/v4"
 )
 
 type Signature struct {
@@ -312,25 +310,25 @@ func (d *Dwn) validateMessageIntegrity(rawMessage types.GenericMessage) error {
 }
 
 func (dwn *Dwn) authenticate(auth Authorization) error {
-	reser, err := json.Marshal(auth.signature())
+	_, err := json.Marshal(auth.signature())
 	if err != nil {
 		return err
 	}
 
-	sig, err := jose.ParseSigned(string(reser),
-		[]jose.SignatureAlgorithm{jose.EdDSA, jose.HS256, jose.HS384})
-	if err != nil {
-		return err
-	}
+	// sig, err := jose.ParseSigned(string(reser),
+	// 	[]jose.SignatureAlgorithm{jose.EdDSA, jose.HS256, jose.HS384})
+	//if err != nil {
+	//return err
+	//}
 	//fmt.Println("sig", sig)
-	for i, s := range sig.Signatures {
-		fmt.Println(i, "keyid", s.Header.KeyID)
-		// didResult, err := dwn.didResolver.Resolve(s.Header.KeyID)
-		// if err != nil {
-		// 	return err
-		// }
-		//fmt.Println(i, "result", didResult)
-	}
+	// for i, s := range sig.Signatures {
+	// 	fmt.Println(i, "keyid", s.Header.KeyID)
+	// 	// didResult, err := dwn.didResolver.Resolve(s.Header.KeyID)
+	// 	// if err != nil {
+	// 	// 	return err
+	// 	// }
+	// 	//fmt.Println(i, "result", didResult)
+	// }
 
 	// TODO implement authentication logic
 	return nil
