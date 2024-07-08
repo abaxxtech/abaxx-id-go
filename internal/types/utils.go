@@ -2,8 +2,9 @@ package types
 
 type GenericMessage struct {
 	Descriptor struct {
-		Interface string `json:"interface"`
-		Method    string `json:"method"`
+		Interface        string `json:"interface"`
+		Method           string `json:"method"`
+		MessageTimestamp string `json:"messageTimestamp"`
 	} `json:"descriptor"`
 	Authorization struct {
 		Signer    string `json:"signer"`
@@ -17,4 +18,3 @@ type GenericSignaturePayload struct {
 	PermissionsGrantId string `json:"permissionsGrantId,omitempty"`
 	ProtocolRole       string `json:"protocolRole,omitempty"`
 }
-
