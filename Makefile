@@ -1,8 +1,8 @@
 build:
-	@go build -v -o ./bin/abaxx-id-go .
+	@go build -ldflags="-s -w -buildid=" -v -o ./bin/abaxx-id ./cmd/abaxx-id/.
 
 run: build
-	@./bin/abaxx-id-go
+	@./bin/abaxx-id
 
 test:
 	@go test ./...
