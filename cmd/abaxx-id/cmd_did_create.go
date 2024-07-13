@@ -7,6 +7,7 @@ import (
 
 	"github.com/abaxxtech/abaxx-id-go/internal/dids/did"
 	"github.com/abaxxtech/abaxx-id-go/internal/dids/diddht"
+	"github.com/abaxxtech/abaxx-id-go/internal/dids/didion"
 	"github.com/abaxxtech/abaxx-id-go/internal/dids/didjwk"
 	"github.com/abaxxtech/abaxx-id-go/internal/dids/didweb"
 )
@@ -15,6 +16,7 @@ type didCreateCMD struct {
 	JWK didCreateJWKCMD `cmd:"" help:"Create a did:jwk."`
 	Web didCreateWebCMD `cmd:"" help:"Create a did:web."`
 	DHT didCreateDHTCMD `cmd:"" help:"Create a did:dht."`
+	ION didCreateIONCMD `cmd:"" help:"Create a did:ion."`
 }
 
 type didCreateJWKCMD struct {
@@ -77,4 +79,17 @@ func printDID(d did.BearerDID, noIndent bool) error {
 	fmt.Println(string(jsonDID))
 
 	return nil
+}
+
+type didCreateIONCMD struct {
+	NoIndent bool `help:"Print the portable DID without indentation." default:"false"`
+}
+
+func (c *didCreateIONCMD) Run() error {
+	did, err := didion.CreateWithContext(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return printDID(did, c.NoIndent)
 }
