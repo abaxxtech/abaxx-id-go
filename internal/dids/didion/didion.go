@@ -1,8 +1,13 @@
 package didion
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
 
 	"github.com/abaxxtech/abaxx-id-go/internal/crypto"
 	"github.com/abaxxtech/abaxx-id-go/internal/crypto/dsa"
@@ -12,7 +17,7 @@ import (
 )
 
 const (
-	defaultIONAPIEndpoint = "https://ion.abaxx.id" // @todo
+	defaultIONAPIEndpoint = "https://ion.msidentity.com/api/v1.0/"
 )
 
 type createOptions struct {
@@ -22,6 +27,16 @@ type createOptions struct {
 }
 
 type CreateOption func(*createOptions)
+
+type Resolver struct{}
+
+func (r Resolver) Resolve(didURI string) (didcore.ResolutionResult, error) {
+	return Resolve(didURI)
+}
+
+func (r Resolver) ResolveWithContext(ctx context.Context, didURI string) (didcore.ResolutionResult, error) {
+	return ResolveWithContext(ctx, didURI)
+}
 
 func KeyManager(km crypto.KeyManager) CreateOption {
 	return func(o *createOptions) {
@@ -70,10 +85,16 @@ func CreateWithContext(ctx context.Context, opts ...CreateOption) (did.BearerDID
 	// Create ION DID document
 	document := createIONDocument(publicKey)
 
-	// For now, we'll return a placeholder DID
-	ionDID := did.DID{
-		Method: "ion",
-		URI:    "did:ion:placeholder",
+	// Create ION DID request
+	ionRequest, err := createIONRequest(document)
+	if err != nil {
+		return did.BearerDID{}, fmt.Errorf("failed to create ION request: %w", err)
+	}
+
+	// Send request to ION node
+	ionDID, err := sendIONRequest(ctx, options.apiEndpoint, ionRequest)
+	if err != nil {
+		return did.BearerDID{}, fmt.Errorf("failed to send ION request: %w", err)
 	}
 
 	return did.BearerDID{
@@ -95,6 +116,7 @@ func createIONDocument(publicKey jwk.JWK) didcore.Document {
 				PublicKeyJwk: &publicKey,
 			},
 		},
+		Authentication: []string{"#key-1"},
 		Service: []didcore.Service{
 			{
 				ID:              "#dwn",
@@ -106,22 +128,92 @@ func createIONDocument(publicKey jwk.JWK) didcore.Document {
 	return document
 }
 
-// TODO: Implement ION-specific operations
-// 1. Create ION DID request
-// 2. Resolve ION DID
-// 3. Wait for anchoring and retrieve long-form DID
+type IONRequest struct {
+	Type     string           `json:"type"`
+	Document didcore.Document `json:"document"`
+}
 
-// ionDIDRequest, err := createIONDIDRequest(document)
-// if err != nil {
-// 	return did.BearerDID{}, fmt.Errorf("failed to create ION DID request: %w", err)
-// }
+func createIONRequest(document didcore.Document) (IONRequest, error) {
+	return IONRequest{
+		Type:     "create",
+		Document: document,
+	}, nil
+}
 
-// resolvedDID, err := resolveIONDID(ionDIDRequest)
-// if err != nil {
-// 	return did.BearerDID{}, fmt.Errorf("failed to resolve ION DID: %w", err)
-// }
+func sendIONRequest(ctx context.Context, apiEndpoint string, request IONRequest) (did.DID, error) {
+	jsonData, err := json.Marshal(request)
+	if err != nil {
+		return did.DID{}, fmt.Errorf("failed to marshal ION request: %w", err)
+	}
 
-// longFormDID, err := waitForAnchoringAndRetrieveLongFormDID(resolvedDID)
-// if err != nil {
-// 	return did.BearerDID{}, fmt.Errorf("failed to retrieve long-form DID: %w", err)
-// }
+	req, err := http.NewRequestWithContext(ctx, "POST", apiEndpoint+"/operations", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return did.DID{}, fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: time.Second * 10}
+	resp, err := client.Do(req)
+	if err != nil {
+		return did.DID{}, fmt.Errorf("failed to send HTTP request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return did.DID{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var result struct {
+		DID string `json:"did"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return did.DID{}, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return did.Parse(result.DID)
+}
+
+func Resolve(didURI string) (didcore.ResolutionResult, error) {
+	return ResolveWithContext(context.Background(), didURI)
+}
+
+func ResolveWithContext(ctx context.Context, didURI string) (didcore.ResolutionResult, error) {
+	// Validate the DID URI
+	if !strings.HasPrefix(didURI, "did:ion:") {
+		return didcore.ResolutionResult{}, fmt.Errorf("invalid ION DID: %s", didURI)
+	}
+
+	// Extract the ION-specific identifier
+	// ionID := strings.TrimPrefix(didURI, "did:ion:")
+
+	// Construct the resolution URL
+	resolutionURL := fmt.Sprintf("%s/identifiers/%s", defaultIONAPIEndpoint, didURI)
+
+	// Create HTTP request
+	req, err := http.NewRequestWithContext(ctx, "GET", resolutionURL, nil)
+	if err != nil {
+		return didcore.ResolutionResult{}, fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+
+	// Send the request
+	client := &http.Client{Timeout: time.Second * 10}
+	resp, err := client.Do(req)
+	if err != nil {
+		return didcore.ResolutionResult{}, fmt.Errorf("failed to send HTTP request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response status
+	if resp.StatusCode != http.StatusOK {
+		return didcore.ResolutionResult{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	// Parse the response
+	var result didcore.ResolutionResult
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return didcore.ResolutionResult{}, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return result, nil
+}

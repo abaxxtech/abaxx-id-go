@@ -7,6 +7,7 @@ import (
 	"github.com/abaxxtech/abaxx-id-go/internal/dids/did"
 	"github.com/abaxxtech/abaxx-id-go/internal/dids/didcore"
 	"github.com/abaxxtech/abaxx-id-go/internal/dids/diddht"
+	"github.com/abaxxtech/abaxx-id-go/internal/dids/didion"
 	"github.com/abaxxtech/abaxx-id-go/internal/dids/didjwk"
 	"github.com/abaxxtech/abaxx-id-go/internal/dids/didweb"
 )
@@ -31,6 +32,7 @@ func getDefaultResolver() *didResolver {
 				"dht": diddht.DefaultResolver(),
 				"jwk": didjwk.Resolver{},
 				"web": didweb.Resolver{},
+				"ion": didion.Resolver{},
 			},
 		}
 	})
