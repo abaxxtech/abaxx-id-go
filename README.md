@@ -22,7 +22,7 @@ Proposals and issues for the specification itself should be submitted as pull re
 
 > `./bin/abaxx-id` is a CLI tool that allows you to create and manage DIDs, DWNs, and VCs.
 
-## Readme's
+## Integration Readme's
 
 * [crypto](./internal/crypto/README.md)
 * [dids](./internal/dids/README.md)

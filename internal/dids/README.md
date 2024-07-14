@@ -228,11 +228,11 @@ func main() {
 > [!WARNING]
 > `did.BearerDIDFromKeys(portableDID)` will be renamed `did.FromPortableDID`
 
-# Development
+## Development
 
-## Directory Structure
+### Directory Structure
 
-```
+```sh
 dids
 ├── README.md
 ├── did
@@ -255,18 +255,18 @@ dids
 
 ## Adding a new DID Method
 
-* Create a package for the did method being implemented e.g. `didjwk`, `diddht`, `didweb`
+- Create a package for the did method being implemented e.g. `didjwk`, `diddht`, `didweb`
 
 ### Creation
 
-* Other did methods in this module include a `Create` method that creates a _new_ `BearerDID`
+- Other did methods in this module include a `Create` method that creates a _new_ `BearerDID`
 
-* Preferrably `Create` should work without having to pass it any arguments 
+- Preferrably `Create` should work without having to pass it any arguments
 
-* Options should be provided using the functional options pattern described [here](https://golang.cafe/blog/golang-functional-options-pattern.html) (thanks for the suggestion @alecthomas)
+- Options should be provided using the functional options pattern described [here](https://golang.cafe/blog/golang-functional-options-pattern.html) (thanks for the suggestion @alecthomas)
 
 ### Resolution
 
-* Implement the [MethodResolver] interface defined in the `didcore` package
+- Implement the [MethodResolver] interface defined in the `didcore` package
 
-* plug the method resolver into `dids/resolver.go`
+- plug the method resolver into `dids/resolver.go`

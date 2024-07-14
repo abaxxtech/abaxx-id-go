@@ -1,17 +1,16 @@
 # `jwt` <!-- omit in toc -->
 
-# Table of Contents
+## Table of Contents
 
 - [Table of Contents](#table-of-contents)
 - [Usage](#usage)
   - [Signing](#signing)
   - [Verifying](#verifying)
 - [Directory Structure](#directory-structure)
-  - [Rationale](#rationale)
 
-# Usage
+## Usage
 
-## Signing
+### Signing
 
 ```go
 package main
@@ -66,9 +65,9 @@ func main() {
 
 specifying a specific category of key to use relative to the did provided can be done in the same way shown with `jws.Sign`
 
-# Directory Structure
+### Directory Structure
 
-```
+```sh
 jwt
 ├── jwt.go
 └── jwt_test.go

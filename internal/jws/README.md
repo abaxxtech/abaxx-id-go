@@ -1,23 +1,22 @@
 # `jws` <!-- omit in toc -->
 
+## Table of Contents <!-- omit in toc -->
 
-# Table of Contents <!-- omit in toc -->
 - [Features](#features)
 - [Usage](#usage)
   - [Signing:](#signing)
   - [Detached Content](#detached-content)
   - [Verifying](#verifying)
   - [Directory Structure](#directory-structure)
-    - [Rationale](#rationale)
 
+### Features
 
-# Features
-* Signing a JWS (JSON Web Signature) with a DID
-* Verifying a JWS with a DID
+- Signing a JWS (JSON Web Signature) with a DID
+- Verifying a JWS with a DID
 
-# Usage
+## Usage
 
-## Signing:
+### Signing
 
 ```go
 package main
@@ -28,7 +27,7 @@ import (
     "github.com/abaxxtech/abaxx-id-go/internal/jws"
 )
 
-func main() {	
+func main() {
     did, err := didjwk.Create()
     if err != nil {
         fmt.Printf("failed to create did: %v", err)
@@ -60,7 +59,7 @@ import (
     "github.com/abaxxtech/abaxx-id-go/internal/jws"
 )
 
-func main() {	
+func main() {
     did, err := didjwk.Create()
     if err != nil {
         fmt.Printf("failed to create did: %v", err)
@@ -90,7 +89,7 @@ import (
     "github.com/abaxxtech/abaxx-id-go/internal/jws"
 )
 
-func main() {	
+func main() {
     bearerDID, err := didjwk.Create()
     if err != nil {
         fmt.Printf("failed to create did: %v", err)
@@ -108,8 +107,7 @@ func main() {
 }
 ```
 
-
-## Verifying
+### Verifying
 
 ```go
 package main
@@ -120,7 +118,7 @@ import (
     "github.com/abaxxtech/abaxx-id-go/internal/jws"
 )
 
-func main() {	
+func main() {
     compactJWS := "SOME_JWS"
     ok, err := jws.Verify(compactJWS)
     if (err != nil) {
@@ -133,13 +131,11 @@ func main() {
 }
 ```
 
-> [!NOTE]
 > an error is returned if something in the process of verification failed whereas `!ok` means the signature is actually shot
 
+### Directory Structure
 
-## Directory Structure
-
-```
+```sh
 jws
 ├── jws.go
 └── jws_test.go

@@ -1,6 +1,6 @@
 # `crypto` <!-- omit in toc -->
 
-# Table of Contents <!-- omit in toc -->
+## Table of Contents <!-- omit in toc -->
 
 - [Features](#features)
 - [Usage](#usage)
@@ -9,19 +9,18 @@
     - [Signing](#signing)
     - [Verifying](#verifying)
 - [Directory Structure](#directory-structure)
-  - [Rationale](#rationale)
 
-# Features
+## Features
 
-* secp256k1 keygen, deterministic signing, and verification
-* ed25519 keygen, signing, and verification
-* higher-level API for `ecdsa` (Elliptic Curve Digital Signature Algorithm)
-* higher-level API for `eddsa` (Edwards-Curve Digital Signature Algorithm) 
-* higher level API for `dsa` in general (Digital Signature Algorithm)
-* `KeyManager` interface that can leveraged to manage/use keys (create, sign etc) as desired per the given use case. examples of concrete implementations include: AWS KMS, Azure Key Vault, Google Cloud KMS, Hashicorp Vault etc
-* Concrete implementation of `KeyManager` that stores keys in memory
+- secp256k1 keygen, deterministic signing, and verification
+- ed25519 keygen, signing, and verification
+- higher-level API for `ecdsa` (Elliptic Curve Digital Signature Algorithm)
+- higher-level API for `eddsa` (Edwards-Curve Digital Signature Algorithm)
+- higher level API for `dsa` in general (Digital Signature Algorithm)
+- `KeyManager` interface that can leveraged to manage/use keys (create, sign etc) as desired per the given use case. examples of concrete implementations include: AWS KMS, Azure Key Vault, Google Cloud KMS, Hashicorp Vault etc
+- Concrete implementation of `KeyManager` that stores keys in memory
 
-# Usage
+## Usage
 
 ## `dsa`
 
@@ -40,8 +39,8 @@ import (
 func main() {
   privateJwk, err := dsa.GeneratePrivateKey(dsa.AlgorithmIDSECP256K1)
   if err != nil {
-	  fmt.Printf("Failed to generate private key: %v\n", err)
-	  return
+    fmt.Printf("Failed to generate private key: %v\n", err)
+    return
   }
 }
 ```
@@ -126,10 +125,9 @@ func main() {
 }
 ```
 
-> [!NOTE]
 > `ecdsa` and `eddsa` provide the same high level api as `dsa`, but specifically for algorithms within those respective families. this makes it so that if you add an additional algorithm, it automatically gets picked up by `dsa` as well.
 
-# Directory Structure
+### Directory Structure
 
 ```sh
 crypto
