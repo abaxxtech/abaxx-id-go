@@ -1,0 +1,52 @@
+sequence-diagram
+
+title DSA Key Generation, Signing, and Verifying
+
+// Actors
+User [icon: user, color: blue]
+DSA [icon: key, color: green]
+Server [icon: server, color: orange]
+
+// Key Generation
+User > DSA: Generate Private Key
+activate User
+DSA > DSA: Generate SECP256K1 Key
+DSA --> User: Return Private Key
+deactivate User
+
+// Signing
+User > DSA: Sign Payload
+activate User
+DSA > DSA: Create Signature
+DSA --> User: Return Signature
+deactivate User
+
+// Verifying
+User > DSA: Verify Signature
+activate User
+DSA > DSA: Get Public Key
+DSA > DSA: Verify Signature
+alt [label: Signature Valid, color: green] {
+  DSA --> User: Signature Verified
+}
+else [label: Signature Invalid, color: red] {
+  DSA --> User: Verification Failed
+}
+deactivate User
+
+// Server Interaction
+User > Server: Send Data
+activate User
+Server > DSA: Request Verification
+activate Server
+DSA > DSA: Verify Data
+alt [label: Data Valid, color: green] {
+  DSA --> Server: Data Verified
+}
+else [label: Data Invalid, color: red] {
+  DSA --> Server: Verification Failed
+}
+deactivate Server
+Server --> User: Response
+deactivate User
+
