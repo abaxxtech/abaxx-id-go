@@ -1,31 +1,25 @@
-# `crypto` <!-- omit in toc -->
+<p><a target="_blank" href="https://app.eraser.io/workspace/w7lSCzVNzNgP01xvx5MX" id="edit-in-eraser-github-link"><img alt="Edit in Eraser" src="https://firebasestorage.googleapis.com/v0/b/second-petal-295822.appspot.com/o/images%2Fgithub%2FOpen%20in%20Eraser.svg?alt=media&amp;token=968381c8-a7e7-472a-8ed6-4a6626da5501"></a></p>
 
-## Table of Contents <!-- omit in toc -->
-
-- [Features](#features)
-- [Usage](#usage)
-  - [`dsa`](#dsa)
-    - [Key Generation](#key-generation)
-    - [Signing](#signing)
-    - [Verifying](#verifying)
-- [Directory Structure](#directory-structure)
-
+# `crypto` 
+## Table of Contents 
+- [﻿Features](#features) 
+- [﻿Usage](#usage) 
+    - [﻿dsa](#dsa) 
+        - [﻿Key Generation](#key-generation) 
+        - [﻿Signing](#signing) 
+        - [﻿Verifying](#verifying) 
+- [﻿Directory Structure](#directory-structure) 
 ## Features
-
 - secp256k1 keygen, deterministic signing, and verification
 - ed25519 keygen, signing, and verification
-- higher-level API for `ecdsa` (Elliptic Curve Digital Signature Algorithm)
-- higher-level API for `eddsa` (Edwards-Curve Digital Signature Algorithm)
-- higher level API for `dsa` in general (Digital Signature Algorithm)
-- `KeyManager` interface that can leveraged to manage/use keys (create, sign etc) as desired per the given use case. examples of concrete implementations include: AWS KMS, Azure Key Vault, Google Cloud KMS, Hashicorp Vault etc
-- Concrete implementation of `KeyManager` that stores keys in memory
-
+- higher-level API for `ecdsa`  (Elliptic Curve Digital Signature Algorithm)
+- higher-level API for `eddsa`  (Edwards-Curve Digital Signature Algorithm)
+- higher level API for `dsa`  in general (Digital Signature Algorithm)
+- `KeyManager`  interface that can leveraged to manage/use keys (create, sign etc) as desired per the given use case. examples of concrete implementations include: AWS KMS, Azure Key Vault, Google Cloud KMS, Hashicorp Vault etc
+- Concrete implementation of `KeyManager`  that stores keys in memory
 ## Usage
-
-## `dsa`
-
+## `dsa` 
 ### Key Generation
-
 the `dsa` package provides algorithm ID's that can be passed to the `GenerateKey` function i.e.
 
 ```go
@@ -44,9 +38,7 @@ func main() {
   }
 }
 ```
-
 ### Signing
-
 Signing takes a private key and a payload to sign. e.g.
 
 ```go
@@ -76,9 +68,7 @@ func main() {
   }
 }
 ```
-
 ### Verifying
-
 Verifying takes a public key, the payload that was signed, and the signature. i.e.
 
 ```go
@@ -124,11 +114,9 @@ func main() {
   }
 }
 ```
-
-> `ecdsa` and `eddsa` provide the same high level api as `dsa`, but specifically for algorithms within those respective families. this makes it so that if you add an additional algorithm, it automatically gets picked up by `dsa` as well.
+>  `ecdsa` and `eddsa` provide the same high level api as `dsa`, but specifically for algorithms within those respective families. this makes it so that if you add an additional algorithm, it automatically gets picked up by `dsa` as well. 
 
 ### Directory Structure
-
 ```sh
 crypto
 ├── README.md
@@ -147,3 +135,13 @@ crypto
 ├── keymanager.go
 └── keymanager_test.go
 ```
+
+
+
+<!-- eraser-additional-content -->
+## Diagrams
+<!-- eraser-additional-files -->
+<a href="/internal/crypto/README-DSA Key Generation, Signing, and Verifying-1.eraserdiagram" data-element-id="m43bNzPgrl-UMpR-d2f3y"><img src="/.eraser/w7lSCzVNzNgP01xvx5MX___pHaokLkHewZxZhanJWMXDLMn78l2___---diagram----542fb4f312ac342ddc46e01b166c3355-DSA-Key-Generation--Signing--and-Verifying.png" alt="" data-element-id="m43bNzPgrl-UMpR-d2f3y" /></a>
+<!-- end-eraser-additional-files -->
+<!-- end-eraser-additional-content -->
+<!--- Eraser file: https://app.eraser.io/workspace/w7lSCzVNzNgP01xvx5MX --->

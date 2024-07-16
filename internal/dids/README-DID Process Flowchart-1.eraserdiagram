@@ -1,0 +1,64 @@
+flowchart-diagram
+
+title DID Process Flowchart
+
+// Define groups for better organization
+DID Creation [color: lightblue] {
+  did:jwk
+  did:dht
+  did:web
+}
+
+DID Resolution [color: lightgreen] {
+  Resolve DID
+}
+
+Importing Exporting [color: lightcoral] {
+  Exporting
+  Importing
+}
+
+Development [color: lightyellow] {
+  Directory Structure
+  Adding a new DID Method
+}
+
+// Define nodes and relationships
+Start [shape: oval, icon: play] > Choose Action [shape: diamond, icon: list]
+
+Choose Action > did:jwk [color: blue, icon: key]: Create did:jwk
+Choose Action > did:dht [color: blue, icon: key]: Create did:dht
+Choose Action > did:web [color: blue, icon: key]: Create did:web
+Choose Action > Resolve DID [color: green, icon: search]: Resolve DID
+Choose Action > Exporting [color: red, icon: upload]: Export DID
+Choose Action > Importing [color: red, icon: download]: Import DID
+Choose Action > Directory Structure [color: yellow, icon: folder]: View Directory Structure
+Choose Action > Adding a new DID Method [color: yellow, icon: plus-circle]: Add new DID Method
+
+did:jwk > Create with LocalKeyManager [icon: key]
+did:jwk > Create with Custom KeyManager [icon: key]
+Create with LocalKeyManager > End [shape: oval, icon: check]
+Create with Custom KeyManager > End [shape: oval, icon: check]
+
+did:dht > TODO [icon: alert-triangle]
+did:web > TODO [icon: alert-triangle]
+
+Resolve DID > End [shape: oval, icon: check]
+
+Exporting > Create BearerDID [icon: key]
+Create BearerDID > Convert to PortableDID [icon: key]
+Convert to PortableDID > Save PortableDID [icon: save]
+Save PortableDID > End [shape: oval, icon: check]
+
+Importing > Retrieve PortableDID [icon: download]
+Retrieve PortableDID > Convert to BearerDID [icon: key]
+Convert to BearerDID > End [shape: oval, icon: check]
+
+Directory Structure > End [shape: oval, icon: check]
+
+Adding a new DID Method > Create Package [icon: package]
+Create Package > Implement Create Method [icon: code]
+Implement Create Method > Implement MethodResolver [icon: code]
+Implement MethodResolver > Plug into Resolver [icon: plug]
+Plug into Resolver > End [shape: oval, icon: check]
+

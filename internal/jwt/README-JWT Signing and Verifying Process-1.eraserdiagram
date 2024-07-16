@@ -1,0 +1,43 @@
+sequence-diagram
+
+title JWT Signing and Verifying Process
+
+// Actors
+Client [icon: monitor, color: lightblue]
+DIDJWK [icon: key, color: green]
+JWT [icon: lock, color: orange]
+Server [icon: server, color: red]
+
+// Signing Process
+Client > DIDJWK: Create DID
+activate Client
+DIDJWK > Client: Return DID
+deactivate Client
+
+Client > JWT: Create Claims
+activate Client
+JWT > Client: Return Claims
+deactivate Client
+
+Client > JWT: Sign Claims
+activate Client
+JWT > Client: Return JWT
+deactivate Client
+
+// Verifying Process
+Client > Server: Send JWT
+activate Client
+Server > JWT: Verify JWT
+activate Server
+
+alt [label: valid JWT, color: green] {
+  JWT > Server: Valid
+  Server > Client: Verification Success
+}
+else [label: invalid JWT, color: red] {
+  JWT > Server: Invalid
+  Server > Client: Verification Failed
+}
+deactivate Server
+deactivate Client
+

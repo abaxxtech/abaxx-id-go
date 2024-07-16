@@ -1,0 +1,61 @@
+sequence-diagram
+
+// Title of the sequence diagram
+title JWS Signing and Verification Process
+
+// Define actors with icons and colors
+Client [icon: monitor, color: lightblue]
+Server [icon: server, color: lightgreen]
+DIDService [icon: key, color: orange]
+JWSSignService [icon: lock, color: red]
+JWSVerifyService [icon: shield, color: purple]
+
+// Sequence of interactions
+Client > Server: Request to sign data
+activate Client
+
+Server > DIDService: Create DID
+activate Server
+DIDService > Server: DID created
+deactivate DIDService
+
+Server > JWSSignService: Sign data with DID
+activate JWSSignService
+loop [label: Retry until success, color: yellow] {
+    JWSSignService > JWSSignService: Attempt to sign
+}
+JWSSignService > Server: Signed JWS
+deactivate JWSSignService
+
+alt [label: JWS Signing Result, color: green] {
+    Server > Client: Return signed JWS
+    deactivate Server
+}
+else [label: Signing Failed, color: red] {
+    Server > Client: Error message
+    deactivate Server
+}
+
+Client > Server: Request to verify JWS
+activate Client
+Server > JWSVerifyService: Verify JWS
+activate JWSVerifyService
+
+par [label: Parallel Verification, color: lightgrey] {
+    JWSVerifyService > DIDService: Fetch DID for verification
+    and
+    JWSVerifyService > JWSVerifyService: Validate JWS structure
+}
+JWSVerifyService > Server: Verification result
+deactivate JWSVerifyService
+
+alt [label: Verification Result, color: blue] {
+    Server > Client: JWS is valid
+    deactivate Server
+}
+else [label: Verification Failed, color: red] {
+    Server > Client: JWS is invalid
+    deactivate Server
+}
+deactivate Client
+
