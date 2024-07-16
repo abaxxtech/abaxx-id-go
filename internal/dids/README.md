@@ -1,4 +1,4 @@
-# dids
+# `dids`
 
 ## Table of Contents
 
