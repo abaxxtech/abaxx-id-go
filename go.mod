@@ -5,6 +5,7 @@ go 1.22.1
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/alecthomas/kong v0.9.0
+	github.com/btcsuite/btcutil v1.0.2
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/google/uuid v1.6.0
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1

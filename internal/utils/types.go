@@ -1,4 +1,4 @@
-package types
+package utils
 
 type GenericMessage struct {
 	Descriptor struct {
