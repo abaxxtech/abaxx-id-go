@@ -1,0 +1,18 @@
+{
+  "branches": [
+    { "name": "main", "prerelease": true },
+    { "name": "dev" }
+  ],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release-plus/docker",
+      {
+        "name": "abaxxtech/abaxx-id-go:build",
+        "registry": "ghcr.io",
+        "skipLogin": "true"
+      }
+    ]
+  ]
+}
