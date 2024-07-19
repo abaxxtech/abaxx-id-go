@@ -4,14 +4,13 @@ import (
 	"errors"
 	"io"
 
-	"github.com/abaxxtech/abaxx-id-go/internal/types"
 	cid "github.com/ipfs/go-cid"
 	mh "github.com/multiformats/go-multihash"
 )
 
 type HandlerRequest struct {
 	Tenant     string
-	Message    types.GenericMessage
+	Message    map[string]interface{}
 	DataStream io.Reader
 }
 

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-
-	"github.com/abaxxtech/abaxx-id-go/internal/types"
 )
 
 type Signature struct {
@@ -263,7 +261,7 @@ func (d *Dwn) Close() error {
 	return nil
 }
 
-func (d *Dwn) ProcessMessage(tenant string, rawMessage types.GenericMessage, dataStream io.Reader) (UnionMessageReply, error) {
+func (d *Dwn) ProcessMessage(tenant string, rawMessage map[string]interface{}, dataStream io.Reader) (UnionMessageReply, error) {
 	if err := d.validateTenant(tenant); err != nil {
 		return UnionMessageReply{Status: Status{Code: 401, Detail: err.Error()}}, nil
 	}
@@ -296,7 +294,7 @@ func (d *Dwn) validateTenant(tenant string) error {
 	return nil
 }
 
-func (d *Dwn) validateMessageIntegrity(rawMessage types.GenericMessage) error {
+func (d *Dwn) validateMessageIntegrity(rawMessage map[string]interface{}) error {
 	if rawMessage.Descriptor.Interface == "" || rawMessage.Descriptor.Method == "" {
 		return errors.New("both interface and method must be present")
 	}
