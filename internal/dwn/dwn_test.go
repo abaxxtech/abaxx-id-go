@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	jwk "github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/stretchr/testify/assert"
 )
 
 const authSig = `
@@ -22,7 +22,6 @@ const authSig = `
   }
 }
 `
-
 
 func NewTestDwn() *Dwn {
 	dwn, err := NewDwn(DwnConfig{
@@ -54,8 +53,7 @@ func TestReadDid(t *testing.T) {
 	// re-serialize a key to import it:
 	printKey(t, didInfo, "#dwn-enc")
 	printKey(t, didInfo, "#dwn-sig")
-	
-	
+
 }
 
 func printKey(t *testing.T, didInfo fileDID, keyid string) {
