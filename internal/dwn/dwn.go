@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 
-	"github.com/abaxxtech/abaxx-id-go/internal/did"
 	"github.com/abaxxtech/abaxx-id-go/internal/types"
 )
 
