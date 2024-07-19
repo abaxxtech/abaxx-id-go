@@ -15,7 +15,7 @@ type Status struct {
 }
 
 type DwnConfig struct {
-	DidResolver  *did.DidResolver
+	DidResolver  *DidResolver
 	TenantGate   TenantGate
 	MessageStore MessageStore
 	DataStore    DataStore

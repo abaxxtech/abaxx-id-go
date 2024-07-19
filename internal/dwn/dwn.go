@@ -193,7 +193,7 @@ type UnionMessageReply struct {
 
 type Dwn struct {
 	methodHandlers map[string]MethodHandler
-	didResolver    *did.DidResolver
+	didResolver    *DidResolver
 	messageStore   MessageStore
 	dataStore      DataStore
 	eventLog       EventLog
@@ -202,7 +202,7 @@ type Dwn struct {
 
 func NewDwn(config DwnConfig) (*Dwn, error) {
 	if config.DidResolver == nil {
-		config.DidResolver = did.NewDidResolver(nil, nil)
+		config.DidResolver = NewDidResolver(nil, nil)
 	}
 	if config.TenantGate == nil {
 		config.TenantGate = NewAllowAllTenantGate()

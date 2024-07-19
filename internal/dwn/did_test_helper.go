@@ -17,10 +17,7 @@ func (o StaticDidResolver) Method() string {
 	return o.method
 }
 
-// TODO this seems to be a golang bug...really?
-type DidResolutionResult = did.DidResolutionResult
-
-func (o StaticDidResolver) Resolve(did string) (did.DidResolutionResult, error) {
+func (o StaticDidResolver) Resolve(did string) (DidResolutionResult, error) {
 	if did != o.did {
 		return DidResolutionResult{},
 			errors.New("Static DID only knows" + o.did)
@@ -29,8 +26,8 @@ func (o StaticDidResolver) Resolve(did string) (did.DidResolutionResult, error) 
 	return DidResolutionResult{DidDocument: o.document}, nil
 }
 
-func NewStaticDidResolver(didjson string) *did.DidResolver {
-	return did.NewDidResolver([]did.DidMethodResolver{StaticDidResolver{
+func NewStaticDidResolver(didjson string) *DidResolver {
+	return NewDidResolver([]DidMethodResolver{StaticDidResolver{
 		method:   "ion",
 		did:      "foobar",
 		document: "not yet!",
