@@ -1,9 +1,5 @@
 package dwn
 
-import (
-	"github.com/abaxxtech/abaxx-id-go/internal/did"
-)
-
 // Types that are part of the public interface of the DWN.
 type DID string
 type Tenant string
@@ -25,7 +21,6 @@ type DwnConfig struct {
 	DataStore    DataStore
 	EventLog     EventLog
 }
-
 
 // Query and other options.
 // TODO do these need to be part of the external API?
