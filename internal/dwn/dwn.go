@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-
-	"github.com/abaxxtech/abaxx-id-go/internal/types"
 )
 
 type Signature struct {
@@ -263,7 +261,30 @@ func (d *Dwn) Close() error {
 	return nil
 }
 
-func (d *Dwn) ProcessMessage(tenant string, rawMessage types.GenericMessage, dataStream io.Reader) (UnionMessageReply, error) {
+// This function steps thru the json document, following the keys in `paths`, returning the
+// string, or empty if not found.
+func getPathedStrNoErr(json map[string]interface{}, paths ...string) string {
+	var current interface{} = json
+
+	for _, path := range paths {
+		if m, ok := current.(map[string]interface{}); ok {
+			current, ok = m[path]
+			if !ok {
+				return ""
+			}
+		} else {
+			return ""
+		}
+	}
+
+	if str, ok := current.(string); ok {
+		return str
+	}
+
+	return ""
+}
+
+func (d *Dwn) ProcessMessage(tenant string, rawMessage map[string]interface{}, dataStream io.Reader) (UnionMessageReply, error) {
 	if err := d.validateTenant(tenant); err != nil {
 		return UnionMessageReply{Status: Status{Code: 401, Detail: err.Error()}}, nil
 	}
@@ -272,7 +293,8 @@ func (d *Dwn) ProcessMessage(tenant string, rawMessage types.GenericMessage, dat
 		return UnionMessageReply{Status: Status{Code: 400, Detail: err.Error()}}, nil
 	}
 
-	handlerKey := rawMessage.Descriptor.Interface + rawMessage.Descriptor.Method
+	//
+	handlerKey := getPathedStrNoErr(rawMessage, "Descriptor", "Interface") + getPathedStrNoErr(rawMessage, "Descriptor", "Method")
 	methodHandler, exists := d.methodHandlers[handlerKey]
 	if !exists {
 		return UnionMessageReply{}, errors.New("handler not found")
@@ -296,8 +318,9 @@ func (d *Dwn) validateTenant(tenant string) error {
 	return nil
 }
 
-func (d *Dwn) validateMessageIntegrity(rawMessage types.GenericMessage) error {
-	if rawMessage.Descriptor.Interface == "" || rawMessage.Descriptor.Method == "" {
+func (d *Dwn) validateMessageIntegrity(rawMessage map[string]interface{}) error {
+	if getPathedStrNoErr(rawMessage, "Descriptor", "Interface") == "" ||
+		getPathedStrNoErr(rawMessage, "Descriptor", "Method") == "" {
 		return errors.New("both interface and method must be present")
 	}
 
