@@ -22,8 +22,10 @@ func ResolveWithContext(ctx context.Context, uri string) (didcore.ResolutionResu
 	return getDefaultResolver().ResolveWithContext(ctx, uri)
 }
 
-var instance *didResolver
-var once sync.Once
+var (
+	instance *didResolver
+	once     sync.Once
+)
 
 func getDefaultResolver() *didResolver {
 	once.Do(func() {
@@ -45,27 +47,21 @@ type didResolver struct {
 }
 
 func (r *didResolver) Resolve(uri string) (didcore.ResolutionResult, error) {
-	did, err := did.Parse(uri)
-	if err != nil {
-		return didcore.ResolutionResultWithError("invalidDid"), didcore.ResolutionError{Code: "invalidDid"}
-	}
-
-	resolver := r.resolvers[did.Method]
-	if resolver == nil {
-		return didcore.ResolutionResultWithError("methodNotSupported"), didcore.ResolutionError{Code: "methodNotSupported"}
-	}
-
-	return resolver.Resolve(uri)
+	return r.resolveWithContext(context.Background(), uri)
 }
 
 func (r *didResolver) ResolveWithContext(ctx context.Context, uri string) (didcore.ResolutionResult, error) {
+	return r.resolveWithContext(ctx, uri)
+}
+
+func (r *didResolver) resolveWithContext(ctx context.Context, uri string) (didcore.ResolutionResult, error) {
 	did, err := did.Parse(uri)
 	if err != nil {
 		return didcore.ResolutionResultWithError("invalidDid"), didcore.ResolutionError{Code: "invalidDid"}
 	}
 
-	resolver := r.resolvers[did.Method]
-	if resolver == nil {
+	resolver, found := r.resolvers[did.Method]
+	if !found {
 		return didcore.ResolutionResultWithError("methodNotSupported"), didcore.ResolutionError{Code: "methodNotSupported"}
 	}
 
