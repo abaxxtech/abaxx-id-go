@@ -251,11 +251,3 @@ dids
 
 - Implement the [MethodResolver] interface defined in the `didcore`  package
 - plug the method resolver into `dids/resolver.go`
-
-<!-- eraser-additional-content -->
-### Diagrams
-<!-- eraser-additional-files -->
-<a href="/internal/dids/README-DID Process Flowchart-1.eraserdiagram" data-element-id="o6md7wpTFZ3G7aeR9McOx"><img src="/.eraser/RYkoZtHmN7eVDj1nrTdV___pHaokLkHewZxZhanJWMXDLMn78l2___---diagram----3ec50b17153280e069be65f58c8ae458-DID-Process-Flowchart.png" alt="" data-element-id="o6md7wpTFZ3G7aeR9McOx" /></a>
-<!-- end-eraser-additional-files -->
-<!-- end-eraser-additional-content -->
-<!--- Eraser file: https://app.eraser.io/workspace/RYkoZtHmN7eVDj1nrTdV --->
