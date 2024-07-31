@@ -67,7 +67,9 @@ func main() {
   }
 }
 ```
+
 ### Verifying
+
 Verifying takes a public key, the payload that was signed, and the signature. i.e.
 
 ```go
@@ -134,13 +136,3 @@ crypto
 ├── keymanager.go
 └── keymanager_test.go
 ```
-
-
-
-<!-- eraser-additional-content -->
-## Diagrams
-<!-- eraser-additional-files -->
-<a href="/internal/crypto/README-DSA Key Generation, Signing, and Verifying-1.eraserdiagram" data-element-id="m43bNzPgrl-UMpR-d2f3y"><img src="/.eraser/w7lSCzVNzNgP01xvx5MX___pHaokLkHewZxZhanJWMXDLMn78l2___---diagram----542fb4f312ac342ddc46e01b166c3355-DSA-Key-Generation--Signing--and-Verifying.png" alt="" data-element-id="m43bNzPgrl-UMpR-d2f3y" /></a>
-<!-- end-eraser-additional-files -->
-<!-- end-eraser-additional-content -->
-<!--- Eraser file: https://app.eraser.io/workspace/w7lSCzVNzNgP01xvx5MX --->

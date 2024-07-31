@@ -64,13 +64,3 @@ jwt
 ├── jwt.go
 └── jwt_test.go
 ```
-
-
-
-<!-- eraser-additional-content -->
-## Diagrams
-<!-- eraser-additional-files -->
-<a href="/internal/jwt/README-JWT Signing and Verifying Process-1.eraserdiagram" data-element-id="fYebsjTdni-srAwSgGMY1"><img src="/.eraser/7vYPAsAv9IcfykzVybNF___pHaokLkHewZxZhanJWMXDLMn78l2___---diagram----dd932827dd58043b071aa9dcf5ac809f-JWT-Signing-and-Verifying-Process.png" alt="" data-element-id="fYebsjTdni-srAwSgGMY1" /></a>
-<!-- end-eraser-additional-files -->
-<!-- end-eraser-additional-content -->
-<!--- Eraser file: https://app.eraser.io/workspace/7vYPAsAv9IcfykzVybNF --->

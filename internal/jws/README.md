@@ -127,13 +127,3 @@ jws
 ├── jws.go
 └── jws_test.go
 ```
-
-
-
-<!-- eraser-additional-content -->
-## Diagrams
-<!-- eraser-additional-files -->
-<a href="/internal/jws/README-JWS Signing and Verification Process-1.eraserdiagram" data-element-id="146dvQmbwYPBpGUM2RzBk"><img src="/.eraser/VplWee70eSRvVNyZOOrd___pHaokLkHewZxZhanJWMXDLMn78l2___---diagram----cd2c3da8ebf4159ba46b99cd1225e9e6-JWS-Signing-and-Verification-Process.png" alt="" data-element-id="146dvQmbwYPBpGUM2RzBk" /></a>
-<!-- end-eraser-additional-files -->
-<!-- end-eraser-additional-content -->
-<!--- Eraser file: https://app.eraser.io/workspace/VplWee70eSRvVNyZOOrd --->
