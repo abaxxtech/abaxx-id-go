@@ -30,13 +30,16 @@ func TestParse(t *testing.T) {
 			output: map[string]interface{}{
 				"method": "example",
 				"id":     "123456789abcdefghi",
+				"uri":    "did:example:123456789abcdefghi",
 			},
 		},
 		{
 			input: "did:example:123456789abcdefghi;foo=bar;baz=qux",
 			output: map[string]interface{}{
-				"method": "example",
-				"id":     "123456789abcdefghi",
+				"alternate": "did:example:123456789abcdefghi;baz=qux;foo=bar",
+				"method":    "example",
+				"id":        "123456789abcdefghi",
+				"uri":       "did:example:123456789abcdefghi",
 				"params": map[string]string{
 					"foo": "bar",
 					"baz": "qux",
@@ -48,6 +51,7 @@ func TestParse(t *testing.T) {
 			output: map[string]interface{}{
 				"method": "example",
 				"id":     "123456789abcdefghi",
+				"uri":    "did:example:123456789abcdefghi",
 				"query":  "foo=bar&baz=qux",
 			},
 		},
@@ -56,6 +60,7 @@ func TestParse(t *testing.T) {
 			output: map[string]interface{}{
 				"method":   "example",
 				"id":       "123456789abcdefghi",
+				"uri":      "did:example:123456789abcdefghi",
 				"fragment": "keys-1",
 			},
 		},
@@ -64,54 +69,124 @@ func TestParse(t *testing.T) {
 			output: map[string]interface{}{
 				"method":   "example",
 				"id":       "123456789abcdefghi",
+				"uri":      "did:example:123456789abcdefghi",
 				"query":    "foo=bar&baz=qux",
 				"fragment": "keys-1",
 			},
 		},
 		{
-			input: "did:example:123456789abcdefghi;foo=bar;baz=qux?foo=bar&baz=qux#keys-1",
+			input: "did:example:123456789abcdefghi;foo=bar;baz=qux?p1=v1&p2=v2#keys-1",
 			output: map[string]interface{}{
-				"method":   "example",
-				"id":       "123456789abcdefghi",
-				"params":   map[string]string{"foo": "bar", "baz": "qux"},
-				"query":    "foo=bar&baz=qux",
-				"fragment": "keys-1",
+				"alternate": "did:example:123456789abcdefghi;baz=qux;foo=bar?p1=v1&p2=v2#keys-1",
+				"method":    "example",
+				"id":        "123456789abcdefghi",
+				"uri":       "did:example:123456789abcdefghi",
+				"params":    map[string]string{"foo": "bar", "baz": "qux"},
+				"query":     "p1=v1&p2=v2",
+				"fragment":  "keys-1",
 			},
 		},
 	}
 
 	for _, v := range vectors {
-		did, err := did.Parse(v.input)
+		t.Run(v.input, func(t *testing.T) {
+			did, err := did.Parse(v.input)
 
-		if v.error && err == nil {
-			t.Errorf("expected error, got nil")
-		}
-
-		if err != nil {
-			if !v.error {
-				t.Errorf("failed to parse did: %s", err.Error())
+			if v.error && err == nil {
+				t.Errorf("expected error, got nil")
 			}
-			continue
-		}
 
-		assert.Equal(t, v.output["method"], did.Method)
-		assert.Equal(t, v.output["id"], did.ID)
-
-		if v.output["params"] != nil {
-			params, ok := v.output["params"].(map[string]string)
-			assert.True(t, ok, "expected params to be map[string]string")
-
-			for k, v := range params {
-				assert.Equal(t, v, did.Params[k])
+			if err != nil {
+				if !v.error {
+					t.Errorf("failed to parse did: %s", err.Error())
+				}
+				return
 			}
-		}
 
-		if v.output["query"] != nil {
-			assert.Equal(t, v.output["query"], did.Query)
-		}
+			// The Params map doesn't have a reliable order, so check both
+			alt, ok := v.output["alternate"]
+			if ok {
+				firstOrder := v.input == did.URL()
+				secondOrder := alt == did.URL()
+				assert.True(t, firstOrder || secondOrder, "expected one of the orders to match")
+			} else {
+				assert.Equal(t, v.input, did.URL())
+			}
+			assert.Equal(t, v.output["method"], did.Method)
+			assert.Equal(t, v.output["id"], did.ID)
+			assert.Equal(t, v.output["uri"], did.URI)
 
-		if v.output["fragment"] != nil {
-			assert.Equal(t, v.output["fragment"], did.Fragment)
-		}
+			if v.output["params"] != nil {
+				params, ok := v.output["params"].(map[string]string)
+				assert.True(t, ok, "expected params to be map[string]string")
+
+				for k, v := range params {
+					assert.Equal(t, v, did.Params[k])
+				}
+			}
+
+			if v.output["query"] != nil {
+				assert.Equal(t, v.output["query"], did.Query)
+			}
+
+			if v.output["fragment"] != nil {
+				assert.Equal(t, v.output["fragment"], did.Fragment)
+			}
+		})
+	}
+}
+
+func TestDID_ScanValueRoundtrip(t *testing.T) {
+	tests := []struct {
+		object  did.DID
+		raw     string
+		alt     string
+		wantErr bool
+	}{
+		{
+			raw:    "did:example:123456789abcdefghi",
+			object: did.MustParse("did:example:123456789abcdefghi"),
+		},
+		{
+			raw:    "did:example:123456789abcdefghi;foo=bar;baz=qux",
+			alt:    "did:example:123456789abcdefghi;baz=qux;foo=bar",
+			object: did.MustParse("did:example:123456789abcdefghi;foo=bar;baz=qux"),
+		},
+		{
+			raw:    "did:example:123456789abcdefghi?foo=bar&baz=qux",
+			object: did.MustParse("did:example:123456789abcdefghi?foo=bar&baz=qux"),
+		},
+		{
+			raw:    "did:example:123456789abcdefghi#keys-1",
+			object: did.MustParse("did:example:123456789abcdefghi#keys-1"),
+		},
+		{
+			raw:    "did:example:123456789abcdefghi?foo=bar&baz=qux#keys-1",
+			object: did.MustParse("did:example:123456789abcdefghi?foo=bar&baz=qux#keys-1"),
+		},
+		{
+			raw:    "did:example:123456789abcdefghi;foo=bar;baz=qux?foo=bar&baz=qux#keys-1",
+			alt:    "did:example:123456789abcdefghi;baz=qux;foo=bar?foo=bar&baz=qux#keys-1",
+			object: did.MustParse("did:example:123456789abcdefghi;foo=bar;baz=qux?foo=bar&baz=qux#keys-1"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.raw, func(t *testing.T) {
+			var d did.DID
+			if err := d.Scan(tt.raw); (err != nil) != tt.wantErr {
+				t.Errorf("Scan() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			assert.Equal(t, tt.object, d)
+
+			value, err := d.Value()
+			assert.NoError(t, err)
+			actual, ok := value.(string)
+			assert.True(t, ok)
+			if tt.alt != "" {
+				assert.True(t, actual == tt.raw || actual == tt.alt)
+			} else {
+				assert.Equal(t, tt.raw, actual)
+			}
+		})
 	}
 }
