@@ -7,12 +7,18 @@ import (
 	"github.com/abaxxtech/abaxx-id-go/internal/jwk"
 )
 
+// Purpose constants for verification methods
 const (
-	PurposeAssertion            Purpose = "assertionMethod"
-	PurposeAuthentication       Purpose = "authentication"
+	// PurposeAssertion is used for asserting claims
+	PurposeAssertion Purpose = "assertionMethod"
+	// PurposeAuthentication is used for authentication
+	PurposeAuthentication Purpose = "authentication"
+	// PurposeCapabilityDelegation is used for delegating capabilities
 	PurposeCapabilityDelegation Purpose = "capabilityDelegation"
+	// PurposeCapabilityInvocation is used for invoking capabilities
 	PurposeCapabilityInvocation Purpose = "capabilityInvocation"
-	PurposeKeyAgreement         Purpose = "keyAgreement"
+	// PurposeKeyAgreement is used for key agreement protocols
+	PurposeKeyAgreement Purpose = "keyAgreement"
 )
 
 // Document represents a set of data describing the DID subject including mechanisms such as:

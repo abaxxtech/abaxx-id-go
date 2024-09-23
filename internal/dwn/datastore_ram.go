@@ -4,9 +4,11 @@ import (
 	"io"
 )
 
+// Blob represents a binary large object
 type Blob []byte
 
 // DataStore
+// MemoryDatastore implements the DataStore interface using in-memory storage
 type MemoryDatastore struct {
 	data map[DataCid]Blob
 

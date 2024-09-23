@@ -11,9 +11,13 @@ import (
 	"github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa"
 )
 
+// SECP256K1 related constants
 const (
-	SECP256K1JWA         string = "ES256K"
-	SECP256K1JWACurve    string = "secp256k1"
+	// SECP256K1JWA is the JWA algorithm name for SECP256K1
+	SECP256K1JWA string = "ES256K"
+	// SECP256K1JWACurve is the JWA curve name for SECP256K1
+	SECP256K1JWACurve string = "secp256k1"
+	// SECP256K1AlgorithmID is the algorithm ID for SECP256K1
 	SECP256K1AlgorithmID string = SECP256K1JWACurve
 )
 

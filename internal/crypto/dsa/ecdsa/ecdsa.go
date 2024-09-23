@@ -7,6 +7,7 @@ import (
 	"github.com/abaxxtech/abaxx-id-go/internal/jwk"
 )
 
+// KeyType represents the type of key used in ECDSA
 const (
 	KeyType = "EC"
 )

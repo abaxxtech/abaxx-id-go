@@ -8,9 +8,12 @@ import (
 	"github.com/abaxxtech/abaxx-id-go/internal/jwk"
 )
 
+// Algorithm IDs for different cryptographic algorithms
 const (
+	// AlgorithmIDSECP256K1 is the algorithm ID for SECP256K1
 	AlgorithmIDSECP256K1 = ecdsa.SECP256K1AlgorithmID
-	AlgorithmIDED25519   = eddsa.ED25519AlgorithmID
+	// AlgorithmIDED25519 is the algorithm ID for ED25519
+	AlgorithmIDED25519 = eddsa.ED25519AlgorithmID
 )
 
 // GeneratePrivateKey generates a private key using the algorithm specified by algorithmID.

@@ -17,9 +17,9 @@ type BearerDID struct {
 	Document didcore.Document
 }
 
-// DIDSigner is a function returned by GetSigner that can be used to sign a payload with a key
+// Signer is a function that can be used to sign a payload with a key
 // associated to a BearerDID.
-type DIDSigner func(payload []byte) ([]byte, error)
+type Signer func(payload []byte) ([]byte, error)
 
 // ToPortableDID exports a BearerDID to a portable format
 func (d *BearerDID) ToPortableDID() (PortableDID, error) {
@@ -71,7 +71,7 @@ func (d *BearerDID) ToPortableDID() (PortableDID, error) {
 // method in the DID Document that has the provided purpose will be used to sign the payload.
 //
 // The returned signer is a function that takes a byte payload and returns a byte signature.
-func (d *BearerDID) GetSigner(selector didcore.VMSelector) (DIDSigner, didcore.VerificationMethod, error) {
+func (d *BearerDID) GetSigner(selector didcore.VMSelector) (Signer, didcore.VerificationMethod, error) {
 	vm, err := d.Document.SelectVerificationMethod(selector)
 	if err != nil {
 		return nil, didcore.VerificationMethod{}, err

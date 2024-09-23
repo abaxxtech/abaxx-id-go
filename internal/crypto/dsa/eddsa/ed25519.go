@@ -10,6 +10,7 @@ import (
 	"github.com/abaxxtech/abaxx-id-go/internal/jwk"
 )
 
+// ED25519 related constants
 const (
 	ED25519JWACurve    string = "Ed25519"
 	ED25519AlgorithmID string = ED25519JWACurve

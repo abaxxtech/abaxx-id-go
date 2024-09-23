@@ -7,11 +7,16 @@ import (
 	"strconv"
 )
 
+// Bencode format constants
 const (
+	// DictionaryPrefix is the prefix for dictionaries in bencode format
 	DictionaryPrefix = 'd'
-	IntegerPrefix    = 'i'
-	ListPrefix       = 'l'
-	EndSuffix        = 'e'
+	// IntegerPrefix is the prefix for integers in bencode format
+	IntegerPrefix = 'i'
+	// ListPrefix is the prefix for lists in bencode format
+	ListPrefix = 'l'
+	// EndSuffix is the suffix used to end dictionaries and lists in bencode format
+	EndSuffix = 'e'
 )
 
 // Marshal encodes the given input into a Bencode formatted byte array.

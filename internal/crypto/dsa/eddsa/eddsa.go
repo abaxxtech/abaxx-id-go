@@ -9,8 +9,11 @@ import (
 	"github.com/abaxxtech/abaxx-id-go/internal/jwk"
 )
 
+// EdDSA related constants
 const (
-	JWA     string = "EdDSA"
+	// JWA is the JWA algorithm name for EdDSA
+	JWA string = "EdDSA"
+	// KeyType is the key type for EdDSA
 	KeyType string = "OKP"
 )
 
