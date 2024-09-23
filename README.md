@@ -30,4 +30,4 @@ Proposals and issues for the specification itself should be submitted as pull re
 * [jws](./internal/jws/README.md)
 * [vc](./internal/vc/README.md)
 
-> WIP
+
