@@ -1,7 +1,9 @@
 package did
 
 import (
+	"database/sql/driver"
 	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -12,10 +14,6 @@ type DID struct {
 	// URI represents the complete Decentralized Identifier (DID) URI.
 	// Spec: https://www.w3.org/TR/did-core/#did-syntax
 	URI string
-
-	// URL represents the DID URI + A network location identifier for a specific resource
-	// Spec: https://www.w3.org/TR/did-core/#did-url-syntax
-	URL string
 
 	// Method specifies the DID method in the URI, which indicates the underlying
 	// method-specific identifier scheme (e.g., jwk, dht, key, etc.).
@@ -46,8 +44,31 @@ type DID struct {
 	Fragment string
 }
 
+// URL represents the DID URI + A network location identifier for a specific resource
+// Spec: https://www.w3.org/TR/did-core/#did-url-syntax
+func (d DID) URL() string {
+	url := d.URI
+	if len(d.Params) > 0 {
+		var pairs []string
+		for key, value := range d.Params {
+			pairs = append(pairs, fmt.Sprintf("%s=%s", key, value))
+		}
+		url += ";" + strings.Join(pairs, ";")
+	}
+	if len(d.Path) > 0 {
+		url += "/" + d.Path
+	}
+	if len(d.Query) > 0 {
+		url += "?" + d.Query
+	}
+	if len(d.Fragment) > 0 {
+		url += "#" + d.Fragment
+	}
+	return url
+}
+
 func (d DID) String() string {
-	return d.URL
+	return d.URL()
 }
 
 // MarshalText will convert the given DID's URL into a byte array
@@ -63,6 +84,26 @@ func (d *DID) UnmarshalText(text []byte) error {
 	}
 	*d = did
 	return nil
+}
+
+// Scan implements the Scanner interface
+func (d *DID) Scan(src any) error {
+	switch obj := src.(type) {
+	case nil:
+		return nil
+	case string:
+		if src == "" {
+			return nil
+		}
+		return d.UnmarshalText([]byte(obj))
+	default:
+		return fmt.Errorf("unsupported scan type %T", obj)
+	}
+}
+
+// Value implements the driver Valuer interface
+func (d DID) Value() (driver.Value, error) {
+	return d.String(), nil
 }
 
 // relevant ABNF rules: https://www.w3.org/TR/did-core/#did-syntax
@@ -92,7 +133,6 @@ func Parse(input string) (DID, error) {
 
 	did := DID{
 		URI:    "did:" + match[1] + ":" + match[2],
-		URL:    input,
 		Method: match[1],
 		ID:     match[2],
 	}
@@ -118,4 +158,13 @@ func Parse(input string) (DID, error) {
 	}
 
 	return did, nil
+}
+
+// MustParse parses a DID URI with Parse, and panics on error
+func MustParse(input string) DID {
+	did, err := Parse(input)
+	if err != nil {
+		panic(err)
+	}
+	return did
 }
