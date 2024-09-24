@@ -33,11 +33,11 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
         draft: false
         prerelease: false
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
@@ -48,4 +48,4 @@ jobs:
         asset_path: ./bin/abaxx-id
         asset_name: abaxx-id
         asset_content_type: application/octet-stream
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
