@@ -134,7 +134,7 @@ func ExampleCreate_options() {
 
 	cred := vc.Create(
 		claims,
-		vc.ID("hehecustomid"),
+		vc.ID("thecustomid"),
 		vc.Contexts("https://nocontextisbestcontext.gov"),
 		vc.Types("StreetCredential"),
 		vc.IssuanceDate(issuanceDate),

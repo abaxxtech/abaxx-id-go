@@ -36,7 +36,7 @@ func TestCreate_Options(t *testing.T) {
 
 	cred := vc.Create(
 		claims,
-		vc.ID("hehecustomid"),
+		vc.ID("thecustomid"),
 		vc.Contexts("https://nocontextisbestcontext.gov"),
 		vc.Types("StreetCredential"),
 		vc.IssuanceDate(issuanceDate),
@@ -60,7 +60,7 @@ func TestCreate_Options(t *testing.T) {
 	assert.True(t, slices.Contains(cred.Type, "StreetCredential"))
 	assert.True(t, slices.Contains(cred.Type, vc.BaseType))
 
-	assert.Equal(t, "hehecustomid", cred.ID)
+	assert.Equal(t, "thecustomid", cred.ID)
 
 	assert.NotZero(t, cred.ExpirationDate)
 
