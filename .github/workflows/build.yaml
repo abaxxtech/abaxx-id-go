@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build, Test, and Publish
 
 on:
   push:
@@ -48,4 +48,10 @@ jobs:
         asset_path: ./bin/abaxx-id
         asset_name: abaxx-id
         asset_content_type: application/octet-stream
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+
+    - name: Publish Package
+      run: make publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
