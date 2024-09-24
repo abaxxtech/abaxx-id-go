@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/abaxxtech/abaxx-id-go/internal/dids/did"
-	"github.com/abaxxtech/abaxx-id-go/internal/vc"
+	"github.com/abaxxtech/abaxx-id-go/pkg/dids/did"
+	"github.com/abaxxtech/abaxx-id-go/pkg/vc"
 )
 
 type vcSignCMD struct {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/abaxxtech/abaxx-id-go/internal/jwt"
+	"github.com/abaxxtech/abaxx-id-go/pkg/jwt"
 )
 
 type jwtVerifyCMD struct {

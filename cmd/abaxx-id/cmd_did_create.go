@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/abaxxtech/abaxx-id-go/internal/dids/did"
-	"github.com/abaxxtech/abaxx-id-go/internal/dids/diddht"
-	"github.com/abaxxtech/abaxx-id-go/internal/dids/didjwk"
-	"github.com/abaxxtech/abaxx-id-go/internal/dids/didweb"
+	"github.com/abaxxtech/abaxx-id-go/pkg/dids/did"
+	"github.com/abaxxtech/abaxx-id-go/pkg/dids/diddht"
+	"github.com/abaxxtech/abaxx-id-go/pkg/dids/didjwk"
+	"github.com/abaxxtech/abaxx-id-go/pkg/dids/didweb"
 )
 
 type didCreateCMD struct {

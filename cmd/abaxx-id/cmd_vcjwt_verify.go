@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/abaxxtech/abaxx-id-go/internal/vc"
+	"github.com/abaxxtech/abaxx-id-go/pkg/vc"
 )
 
 type vcjwtVerifyCMD struct {

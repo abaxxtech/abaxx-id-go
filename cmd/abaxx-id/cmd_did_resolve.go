@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/abaxxtech/abaxx-id-go/internal/dids"
+	"github.com/abaxxtech/abaxx-id-go/pkg/dids"
 )
 
 type didResolveCMD struct {
