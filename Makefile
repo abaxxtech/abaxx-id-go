@@ -11,4 +11,4 @@ clean:
 	@rm -rf bin
 
 publish:
-	@gh release upload v0.0.1 ./bin/abaxx-id
+	@gh release upload v0.1.0 ./bin/abaxx-id
