@@ -10,11 +10,7 @@ Proposals and issues for the specification itself should be submitted as pull re
 
 ## Documentation
 
-* [ID Dwn Protocol](docs/id-dwn-protocol.md)
-
-* [ID Dwn Guide](docs/id-dwn-guide.md)
-
-* [ID Dwn Whitepaper](wp.pdf)
+* [ID Dwn Whitepaper](docs/wp.pdf)
 
 * [ID SDK Docs](https://dwnprotocol.gitbook.io/id++-sdk-docs)
 
