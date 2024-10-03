@@ -3,7 +3,10 @@ package dwn
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+
+	"github.com/abaxxtech/abaxx-id-go/pkg/store"
 )
 
 type Signature struct {
@@ -196,6 +199,7 @@ type Dwn struct {
 	dataStore      DataStore
 	eventLog       EventLog
 	tenantGate     TenantGate
+	blockstore     *store.BlockstoreLevel
 }
 
 func NewDwn(config DwnConfig) (*Dwn, error) {
@@ -206,12 +210,19 @@ func NewDwn(config DwnConfig) (*Dwn, error) {
 		config.TenantGate = NewAllowAllTenantGate()
 	}
 
+	// Create a new BlockstoreLevel
+	blockstore, err := store.NewBlockstoreLevel(config.BlockstoreLocation)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create blockstore: %w", err)
+	}
+
 	dwn := &Dwn{
 		didResolver:    config.DidResolver,
 		tenantGate:     config.TenantGate,
 		messageStore:   config.MessageStore,
 		dataStore:      config.DataStore,
 		eventLog:       config.EventLog,
+		blockstore:     blockstore,
 		methodHandlers: map[string]MethodHandler{
 			// "EventsGet":          NewEventsGetHandler(config.DidResolver, config.EventLog),
 			// "EventsQuery":        NewEventsQueryHandler(config.DidResolver, config.EventLog),
@@ -245,6 +256,9 @@ func (d *Dwn) Open() error {
 	if err := d.eventLog.Open(); err != nil {
 		return err
 	}
+	if err := d.blockstore.Open(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -256,6 +270,9 @@ func (d *Dwn) Close() error {
 		return err
 	}
 	if err := d.eventLog.Close(); err != nil {
+		return err
+	}
+	if err := d.blockstore.Close(); err != nil {
 		return err
 	}
 	return nil

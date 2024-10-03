@@ -14,16 +14,16 @@ type Status struct {
 	Detail string
 }
 
+// Update the DwnConfig struct
 type DwnConfig struct {
-	DidResolver  *DidResolver
-	TenantGate   TenantGate
-	MessageStore MessageStore
-	DataStore    DataStore
-	EventLog     EventLog
+	DidResolver        *DidResolver
+	TenantGate         TenantGate
+	MessageStore       MessageStore
+	DataStore          DataStore
+	EventLog           EventLog
+	BlockstoreLocation string // Add this field
 }
 
-// Query and other options.
-// TODO do these need to be part of the external API?
 // Sort options
 type SortDirection int
 
