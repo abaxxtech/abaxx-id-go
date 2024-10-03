@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -95,7 +96,11 @@ func Validate(did string) error {
 }
 
 func extractMethod(did string) string {
-	return ""
+	parts := strings.Split(did, ":")
+	if len(parts) < 3 {
+		return ""
+	}
+	return parts[1]
 }
 
 func (r *DidResolver) Resolve(did string) (DidResolutionResult, error) {
