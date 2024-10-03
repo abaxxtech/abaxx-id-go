@@ -1,11 +1,20 @@
 package dwn
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 
 	cid "github.com/ipfs/go-cid"
 	mh "github.com/multiformats/go-multihash"
+)
+
+const (
+	expectedCidType    = 85
+	expectedCidVersion = 1
+	expectedHashCode   = 18
+	expectedHashName   = "sha2-256"
 )
 
 type HandlerRequest struct {
@@ -25,24 +34,23 @@ func validateCids(cids []string) error {
 		if err != nil {
 			return err
 		}
-		// TODO verify these values and put them into a const
-		if cid.Type() != 85 {
-			return errors.New("Bad code")
+
+		if cid.Type() != expectedCidType {
+			return errors.New("invalid CID type")
 		}
-		if cid.Type() != 1 {
-			return errors.New("Only support V1 for CIDs")
+		if cid.Version() != expectedCidVersion {
+			return errors.New("only support v1 for CIDs")
 		}
 
-		// TODO Verify these values and put them into a const
 		de, err := mh.Decode(cid.Hash())
 		if err != nil {
 			return err
 		}
-		if de.Code != 18 {
-			return errors.New("Only support sha2-256")
+		if de.Code != expectedHashCode {
+			return errors.New("only support sha2-256")
 		}
-		if de.Name != "sha2-256" {
-			return errors.New("Only support sha2-256")
+		if de.Name != expectedHashName {
+			return errors.New("only support sha2-256")
 		}
 	}
 
@@ -74,8 +82,12 @@ func (message *MessagesGet) Handle(tenant Tenant, dwn *Dwn) error {
 		if err != nil {
 			return err
 		}
-		// TODO serialize here
-		results[i] = res
+		// Serialize the message to JSON
+		serializedMessage, err := json.Marshal(res)
+		if err != nil {
+			return fmt.Errorf("failed to serialize message: %w", err)
+		}
+		results[i] = json.RawMessage(serializedMessage)
 	}
 	// TODO return results here.
 	return nil
