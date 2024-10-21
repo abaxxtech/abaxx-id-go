@@ -26,7 +26,7 @@ func TestAddVerificationMethod(t *testing.T) {
 	assert.Equal(t, vm.ID, doc.Authentication[0])
 }
 
-func TestWoo(t *testing.T) {
+func TestSelectVerificationMethod(t *testing.T) {
 	doc := didcore.Document{
 		ID: "did:example:123456789abcdefghi",
 	}

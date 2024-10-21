@@ -1,2 +1,7 @@
 bin
 .DS_Store
+
+test-blockstore
+test-datastore
+test-index
+test-messagestore

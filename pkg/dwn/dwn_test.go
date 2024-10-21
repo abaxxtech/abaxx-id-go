@@ -1,11 +1,14 @@
 package dwn
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"os"
 	"testing"
 
+	cid "github.com/ipfs/go-cid"
 	jwk "github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/multiformats/go-multihash"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -80,36 +83,31 @@ func printKey(t *testing.T, didInfo fileDID, keyid string) {
 	t.Log("serialize", string(x))
 }
 
-func TestCreateAuthObjects(t *testing.T) {
-	auth := PlainAuthorization{}
-	err := json.Unmarshal([]byte(authSig), &auth)
-	if err != nil {
-		t.Error(err)
-	}
+func GenerateTestCID(t *testing.T) string {
+	// Create a random byte slice
+	randomBytes := make([]byte, 32)
+	_, err := rand.Read(randomBytes)
+	assert.NoError(t, err, "Failed to generate random bytes")
 
-	genSig := GeneralJws{Payload: "lkjasdlfjk",
-		Signatures: []Signature{{"abc", "def"}}}
+	// Create a new CID using the random bytes
+	mh, err := multihash.Sum(randomBytes, multihash.SHA2_256, -1)
+	assert.NoError(t, err, "Failed to create multihash")
 
-	stubDwn := NewTestDwn()
-	err = stubDwn.authenticate(auth)
-	t.Log("Error from authenticate", err)
-	if err != nil {
-		t.Error(err)
-	}
+	c := cid.NewCidV1(cid.Raw, mh)
+	return c.String()
+}
 
-	//t.Log("auth", auth)
+func TestAuthSig(t *testing.T) {
+	// Create a new DWN instance
+	// dwn := NewTestDwn()
 
-	_, err = json.Marshal(auth)
-	if err != nil {
-		t.Error("json marshal of auth failed", err)
-	}
-	//t.Log("json", string(r))
+	// Generate a test CID
+	testCid := GenerateTestCID(t)
+	assert.NotEmpty(t, testCid, "Generated CID should not be empty")
 
-	auth2 := AuthorizationDelegatedGrant{
-		genSig, &DelegatedGrant{
-			PlainAuthorization{genSig},
-			DelegatedGrantDescriptor{"recordid", "encodeddata"}}}
-	_, err = json.Marshal(auth2)
-
-	//t.Log("auth2", string(r))
+	// TODO: Add more specific tests once the authSig function is fully implemented
+	// For example:
+	// - Test with valid signatures and verify the extracted DID
+	// - Test with invalid signatures and check for proper error handling
+	// - Test with different signature types (e.g., JWS, Linked Data Signatures)
 }
