@@ -3,283 +3,232 @@ package store
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 
-	"github.com/ipfs/go-cid"
-	ipld "github.com/ipfs/go-ipld-format"
-	"github.com/ipfs/go-unixfs"
-	"github.com/ipfs/go-unixfs/importer/balanced"
-	"github.com/ipfs/go-unixfs/importer/helpers"
-	"github.com/ipfs/go-unixfs/importer/trickle"
-	"github.com/multiformats/go-multihash"
+	importer "github.com/ipfs/boxo/ipld/unixfs/importer"
+	blockservice "github.com/ipfs/go-blockservice"
+	cid "github.com/ipfs/go-cid"
+	ds "github.com/ipfs/go-datastore"
+	nsds "github.com/ipfs/go-datastore/namespace"
+	dsquery "github.com/ipfs/go-datastore/query"
+	dsleveldb "github.com/ipfs/go-ds-leveldb"
+	blockstore "github.com/ipfs/go-ipfs-blockstore"
+	chunker "github.com/ipfs/go-ipfs-chunker"
+	offline "github.com/ipfs/go-ipfs-exchange-offline"
+	files "github.com/ipfs/go-ipfs-files"
+	format "github.com/ipfs/go-ipld-format"
+	dag "github.com/ipfs/go-merkledag"
+	unixfs "github.com/ipfs/go-unixfs"
+	uio "github.com/ipfs/go-unixfs/io"
 )
 
 // PlaceholderValue is used as a placeholder value for reference counting
-var PlaceholderValue = []byte{}
+var PlaceholderValue = []byte{0}
 
-// DataStoreLevel implements the DataStore interface using LevelDB
-type DataStoreLevel struct {
-	blockstore *BlockstoreLevel
+// DataStoreLevelConfig holds configuration options for DataStoreLevel
+type DataStoreLevelConfig struct {
+	BlockstoreLocation string
 }
 
-// NewDataStoreLevel creates a new DataStoreLevel
-func NewDataStoreLevel(blockstoreLocation string) (*DataStoreLevel, error) {
-	blockstore, err := NewBlockstoreLevel(blockstoreLocation)
+// DataStoreLevel is a simple implementation of DataStore that works in both the browser and server-side.
+// Leverages LevelDB under the hood.
+//
+// It has the following structure (`+` represents a sublevel and `->` represents a key->value pair):
+//
+//	'data' + <tenant> + <dataCid> -> <data>
+//	'references' + <tenant> + <dataCid> + <messageCid> -> PlaceholderValue
+//
+// This allows for the <data> to be shared for everything that uses the same <dataCid> while also making
+// sure that the <data> can only be deleted if there are no <messageCid> for any <tenant> still using it.
+type DataStoreLevel struct {
+	config    DataStoreLevelConfig
+	datastore ds.Batching
+}
+
+// NewDataStoreLevel creates a new instance of DataStoreLevel
+func NewDataStoreLevel(config DataStoreLevelConfig) (*DataStoreLevel, error) {
+	if config.BlockstoreLocation == "" {
+		config.BlockstoreLocation = "data/DATASTORE"
+	}
+
+	// Initialize LevelDB datastore
+	levelDB, err := dsleveldb.NewDatastore(config.BlockstoreLocation, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create blockstore: %w", err)
+		return nil, err
 	}
 
 	return &DataStoreLevel{
-		blockstore: blockstore,
+		config:    config,
+		datastore: levelDB,
 	}, nil
 }
 
-// Open opens the underlying blockstore
+// Open opens the datastore (no-op for LevelDB)
 func (d *DataStoreLevel) Open() error {
-	return d.blockstore.Open()
+	// LevelDB datastore does not require opening
+	return nil
 }
 
-// Close closes the underlying blockstore
+// Close closes the datastore
 func (d *DataStoreLevel) Close() error {
-	return d.blockstore.Close()
+	return d.datastore.Close()
 }
 
-// Put stores data in the datastore
-func (d *DataStoreLevel) Put(ctx context.Context, tenant, messageCid, dataCid string, dataStream io.Reader) (PutResult, error) {
-	refBlockstore, err := d.getBlockstoreForReferenceCounting(tenant, dataCid)
+// Put stores the data and updates reference counting
+func (d *DataStoreLevel) Put(ctx context.Context, tenant, messageCid, dataCid string, dataReader io.Reader) (*PutResult, error) {
+	refDS := d.getDatastoreForReferenceCounting(tenant, dataCid)
+	dataBS := d.getBlockstoreForStoringData(tenant, dataCid)
+
+	// Add reference
+	refKey := ds.NewKey(messageCid)
+	if err := refDS.Put(ctx, refKey, PlaceholderValue); err != nil {
+		return nil, err
+	}
+
+	// Import data into blockstore
+	dagService := dag.NewDAGService(blockservice.New(dataBS, offline.Exchange(dataBS)))
+	file := files.NewReaderFile(dataReader)
+
+	// params := helpers.DagBuilderParams{
+	// 	Dagserv:    dagService,
+	// 	RawLeaves:  true,
+	// 	CidBuilder: cid.V1Builder{Codec: cid.DagProtobuf, MhType: multihash.SHA2_256},
+	// }
+
+	// dagBuilder, _ := params.New(chunker.NewSizeSplitter(file, int64(1024*256))) // 256KB chunks
+
+	rootNode, err := importer.BuildDagFromReader(dagService, chunker.DefaultSplitter(file))
 	if err != nil {
-		return PutResult{}, fmt.Errorf("failed to get reference blockstore: %w", err)
+		return nil, err
 	}
 
-	err = refBlockstore.Put(ctx, cid.NewCidV1(cid.Raw, multihash.IDENTITY), PlaceholderValue)
+	dataSize, err := sizeOfNode(rootNode)
 	if err != nil {
-		return PutResult{}, fmt.Errorf("failed to put reference: %w", err)
+		return nil, err
 	}
 
-	dataBlockstore, err := d.getBlockstoreForStoringData(tenant, dataCid)
-	if err != nil {
-		return PutResult{}, fmt.Errorf("failed to get data blockstore: %w", err)
-	}
-
-	dagService := ipld.NewDAGService(dataBlockstore)
-	params := unixfs.DagBuilderParams{
-		Dagserv:    dagService,
-		RawLeaves:  true,
-		Maxlinks:   helpers.DefaultLinksPerBlock,
-		NoCopy:     false,
-		CidBuilder: cid.V1Builder{Codec: cid.DagProtobuf, MhType: multihash.SHA2_256},
-	}
-
-	db, err := params.New(io.NopCloser(dataStream))
-	if err != nil {
-		return PutResult{}, fmt.Errorf("failed to create DAG builder: %w", err)
-	}
-
-	var nd ipld.Node
-	if params.Trickle {
-		nd, err = trickle.Layout(db)
-	} else {
-		nd, err = balanced.Layout(db)
-	}
-	if err != nil {
-		return PutResult{}, fmt.Errorf("failed to create DAG layout: %w", err)
-	}
-
-	size, err := nd.Size()
-	if err != nil {
-		return PutResult{}, fmt.Errorf("failed to get node size: %w", err)
-	}
-
-	return PutResult{
-		DataCid:  nd.Cid().String(),
-		DataSize: uint64(size),
+	return &PutResult{
+		DataCid:  rootNode.Cid().String(),
+		DataSize: dataSize,
 	}, nil
 }
 
-// Get retrieves data from the datastore
-func (d *DataStoreLevel) Get(ctx context.Context, tenant, messageCid, dataCid string) (GetResult, error) {
-	refBlockstore, err := d.getBlockstoreForReferenceCounting(tenant, dataCid)
-	if err != nil {
-		return GetResult{}, err
+// Get retrieves the data if the caller has access
+func (d *DataStoreLevel) Get(ctx context.Context, tenant, messageCid, dataCid string) (*GetResult, error) {
+	refDS := d.getDatastoreForReferenceCounting(tenant, dataCid)
+	dataBS := d.getBlockstoreForStoringData(tenant, dataCid)
+
+	// Check if messageCid is allowed
+	refKey := ds.NewKey(messageCid)
+	hasRef, err := refDS.Has(ctx, refKey)
+	if err != nil || !hasRef {
+		return nil, errors.New("access denied or reference not found")
 	}
 
-	allowed, err := refBlockstore.Has(ctx, cid.NewCidV1(cid.Raw, multihash.IDENTITY))
-	if err != nil {
-		return GetResult{}, err
-	}
-	if !allowed {
-		return GetResult{}, errors.New("not allowed")
-	}
-
-	dataBlockstore, err := d.getBlockstoreForStoringData(tenant, dataCid)
-	if err != nil {
-		return GetResult{}, err
-	}
-
+	// Check if data exists
 	c, err := cid.Decode(dataCid)
 	if err != nil {
-		return GetResult{}, err
+		return nil, err
 	}
 
-	exists, err := dataBlockstore.Has(ctx, c)
+	hasData, err := dataBS.Has(ctx, c)
+	if err != nil || !hasData {
+		return nil, errors.New("data not found")
+	}
+
+	dagService := dag.NewDAGService(blockservice.New(dataBS, offline.Exchange(dataBS)))
+	rootNode, err := dagService.Get(ctx, c)
 	if err != nil {
-		return GetResult{}, err
-	}
-	if !exists {
-		return GetResult{}, errors.New("data not found")
+		return nil, err
 	}
 
-	dagService := ipld.NewDAGService(dataBlockstore)
-	nd, err := dagService.Get(ctx, c)
+	reader, err := uio.NewDagReader(ctx, rootNode, dagService)
 	if err != nil {
-		return GetResult{}, err
+		return nil, err
 	}
 
-	file, err := unixfs.ExtractDataFromNode(nd)
+	dataSize, err := sizeOfNode(rootNode)
 	if err != nil {
-		return GetResult{}, err
+		return nil, err
 	}
 
-	size, err := nd.Size()
-	if err != nil {
-		return GetResult{}, err
-	}
-
-	return GetResult{
-		DataCid:    c.String(),
-		DataSize:   uint64(size),
-		DataStream: file,
+	return &GetResult{
+		DataCid:    rootNode.Cid().String(),
+		DataSize:   dataSize,
+		DataReader: reader,
 	}, nil
 }
 
-// Associate associates a message CID with a data CID
-func (d *DataStoreLevel) Associate(ctx context.Context, tenant, messageCid, dataCid string) (AssociateResult, error) {
-	refBlockstore, err := d.getBlockstoreForReferenceCounting(tenant, dataCid)
-	if err != nil {
-		return AssociateResult{}, err
-	}
-
-	isEmpty, err := refBlockstore.IsEmpty()
-	if err != nil {
-		return AssociateResult{}, err
-	}
-	if isEmpty {
-		return AssociateResult{}, errors.New("no existing reference")
-	}
-
-	dataBlockstore, err := d.getBlockstoreForStoringData(tenant, dataCid)
-	if err != nil {
-		return AssociateResult{}, err
-	}
-
-	c, err := cid.Decode(dataCid)
-	if err != nil {
-		return AssociateResult{}, err
-	}
-
-	exists, err := dataBlockstore.Has(ctx, c)
-	if err != nil {
-		return AssociateResult{}, err
-	}
-	if !exists {
-		return AssociateResult{}, errors.New("data not found")
-	}
-
-	err = refBlockstore.Put(ctx, cid.NewCidV1(cid.Raw, multihash.IDENTITY), PlaceholderValue)
-	if err != nil {
-		return AssociateResult{}, err
-	}
-
-	dagService := ipld.NewDAGService(dataBlockstore)
-	nd, err := dagService.Get(ctx, c)
-	if err != nil {
-		return AssociateResult{}, err
-	}
-
-	size, err := nd.Size()
-	if err != nil {
-		return AssociateResult{}, err
-	}
-
-	return AssociateResult{
-		DataCid:  c.String(),
-		DataSize: uint64(size),
-	}, nil
-}
-
-// Delete removes a message CID association and potentially the data if it's the last reference
+// Delete removes the reference and deletes data if it's no longer referenced
 func (d *DataStoreLevel) Delete(ctx context.Context, tenant, messageCid, dataCid string) error {
-	refBlockstore, err := d.getBlockstoreForReferenceCounting(tenant, dataCid)
-	if err != nil {
+	refDS := d.getDatastoreForReferenceCounting(tenant, dataCid)
+	dataBS := d.getBlockstoreForStoringData(tenant, dataCid)
+
+	// Delete reference
+	refKey := ds.NewKey(messageCid)
+	if err := refDS.Delete(ctx, refKey); err != nil {
 		return err
 	}
 
-	err = refBlockstore.Delete(ctx, cid.NewCidV1(cid.Raw, multihash.IDENTITY))
+	// Check if there are any remaining references
+	keys, err := refDS.Query(ctx, dsquery.Query{})
 	if err != nil {
 		return err
 	}
+	defer keys.Close()
 
-	isEmpty, err := refBlockstore.IsEmpty()
-	if err != nil {
-		return err
-	}
-	if !isEmpty {
+	if keys.Next() != nil {
+		// References still exist, do not delete data
 		return nil
 	}
 
-	dataBlockstore, err := d.getBlockstoreForStoringData(tenant, dataCid)
-	if err != nil {
-		return err
-	}
-
-	return dataBlockstore.Clear()
+	// Delete data
+	return dataBS.DeleteBlock(ctx, cid.MustParse(dataCid))
 }
 
 // Clear deletes everything in the store
-func (d *DataStoreLevel) Clear() error {
-	return d.blockstore.Clear()
+func (d *DataStoreLevel) Clear(ctx context.Context) error {
+	return d.datastore.Close() // Close and reopen to clear
 }
 
-func (d *DataStoreLevel) getBlockstoreForReferenceCounting(tenant, dataCid string) (*BlockstoreLevel, error) {
-	refCountingPartition, err := d.blockstore.Partition("references")
-	if err != nil {
-		return nil, err
-	}
-	tenantPartition, err := refCountingPartition.Partition(tenant)
-	if err != nil {
-		return nil, err
-	}
-	return tenantPartition.Partition(dataCid)
-}
-
-func (d *DataStoreLevel) getBlockstoreForStoringData(tenant, dataCid string) (*BlockstoreLevel, error) {
-	dataPartition, err := d.blockstore.Partition("data")
-	if err != nil {
-		return nil, err
-	}
-	tenantPartition, err := dataPartition.Partition(tenant)
-	if err != nil {
-		return nil, err
-	}
-	return tenantPartition.Partition(dataCid)
-}
-
-// PutResult represents the result of a Put operation
+// PutResult is the result of a Put operation
 type PutResult struct {
 	DataCid  string
 	DataSize uint64
 }
 
-// GetResult represents the result of a Get operation
+// GetResult is the result of a Get operation
 type GetResult struct {
 	DataCid    string
 	DataSize   uint64
-	DataStream io.Reader
+	DataReader io.ReadCloser
 }
 
-// AssociateResult represents the result of an Associate operation
-type AssociateResult struct {
-	DataCid  string
-	DataSize uint64
+// Helper functions
+
+// getDatastoreForReferenceCounting returns the datastore used for reference counting
+func (d *DataStoreLevel) getDatastoreForReferenceCounting(tenant, dataCid string) ds.Datastore {
+	referencesDS := nsds.Wrap(d.datastore, ds.NewKey("references"))
+	tenantDS := nsds.Wrap(referencesDS, ds.NewKey(tenant))
+	return nsds.Wrap(tenantDS, ds.NewKey(dataCid))
+}
+
+// getBlockstoreForStoringData returns the blockstore used for storing data
+func (d *DataStoreLevel) getBlockstoreForStoringData(tenant, dataCid string) blockstore.Blockstore {
+	dataDS := nsds.Wrap(d.datastore, ds.NewKey("data"))
+	tenantDS := nsds.Wrap(dataDS, ds.NewKey(tenant))
+	dataCidDS := nsds.Wrap(tenantDS, ds.NewKey(dataCid))
+	return blockstore.NewBlockstore(dataCidDS)
+}
+
+// sizeOfNode calculates the total size of a DAG node
+func sizeOfNode(node format.Node) (uint64, error) {
+	if unixfsNode, ok := node.(*dag.ProtoNode); ok {
+		fsNode, err := unixfs.FSNodeFromBytes(unixfsNode.Data())
+		if err != nil {
+			return 0, err
+		}
+		return fsNode.FileSize(), nil
+	}
+	return 0, errors.New("unsupported node type")
 }

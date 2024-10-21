@@ -2,70 +2,79 @@ package store
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"errors"
 	"sync"
 
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/iterator"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
-type LevelWrapperConfig struct {
-	Location            string
-	CreateLevelDatabase func(string) (*leveldb.DB, error)
-	KeyEncoding         string
-	ValueEncoding       string
+// LevelWrapperOptions represents options for LevelWrapper methods.
+type LevelWrapperOptions struct {
+	Context context.Context
 }
 
+// LevelWrapperBatchOperation represents a batch operation.
+type LevelWrapperBatchOperation struct {
+	Type  string
+	Key   []byte
+	Value []byte
+}
+
+// LevelWrapperIteratorOptions represents options for iterators.
+type LevelWrapperIteratorOptions struct {
+	Start   []byte
+	Limit   []byte
+	Reverse bool
+}
+
+// LevelWrapperConfig holds configuration for LevelWrapper.
+type LevelWrapperConfig struct {
+	Location    string
+	OpenOptions *opt.Options
+}
+
+// LevelWrapper provides a wrapper around LevelDB with partitioning support.
 type LevelWrapper struct {
 	config LevelWrapperConfig
 	db     *leveldb.DB
 	mu     sync.RWMutex
 }
 
-type BatchOperation struct {
-	Type  string
-	Key   string
-	Value []byte
-}
-
-func NewLevelWrapper(config *LevelWrapperConfig) (*LevelWrapper, error) {
-	if config.CreateLevelDatabase == nil {
-		config.CreateLevelDatabase = createLevelDatabase
-	}
-	db, err := config.CreateLevelDatabase(config.Location)
-	if err != nil {
-		return nil, err
-	}
+// NewLevelWrapper creates a new LevelWrapper instance.
+func NewLevelWrapper(config LevelWrapperConfig) *LevelWrapper {
 	return &LevelWrapper{
-		config: *config,
-		db:     db,
-	}, nil
+		config: config,
+	}
 }
 
+// Open opens the LevelDB database.
 func (lw *LevelWrapper) Open() error {
 	lw.mu.Lock()
 	defer lw.mu.Unlock()
 
 	if lw.db != nil {
-		return nil
+		return nil // Already open
 	}
 
-	db, err := lw.config.CreateLevelDatabase(lw.config.Location)
+	db, err := leveldb.OpenFile(lw.config.Location, lw.config.OpenOptions)
 	if err != nil {
-		return fmt.Errorf("failed to open leveldb: %w", err)
+		return err
 	}
 
 	lw.db = db
 	return nil
 }
 
+// Close closes the LevelDB database.
 func (lw *LevelWrapper) Close() error {
 	lw.mu.Lock()
 	defer lw.mu.Unlock()
 
 	if lw.db == nil {
-		return nil
+		return nil // Already closed
 	}
 
 	err := lw.db.Close()
@@ -73,107 +82,130 @@ func (lw *LevelWrapper) Close() error {
 	return err
 }
 
+// Partition creates a new LevelWrapper for a sublevel (partition).
 func (lw *LevelWrapper) Partition(name string) (*LevelWrapper, error) {
-	lw.mu.RLock()
-	defer lw.mu.RUnlock()
-
 	if lw.db == nil {
-		return nil, fmt.Errorf("database not open")
-	}
-
-	return &LevelWrapper{
-		config: LevelWrapperConfig{
-			Location:            lw.config.Location + "/" + name,
-			CreateLevelDatabase: lw.config.CreateLevelDatabase,
-			KeyEncoding:         lw.config.KeyEncoding,
-			ValueEncoding:       lw.config.ValueEncoding,
-		},
-		db: lw.db,
-	}, nil
-}
-
-func (lw *LevelWrapper) Put(key string, value interface{}, ctx context.Context) error {
-	lw.mu.Lock()
-	defer lw.mu.Unlock()
-
-	if lw.db == nil {
-		return fmt.Errorf("database not open")
-	}
-
-	encodedValue, err := encodeValue(value, lw.config.ValueEncoding)
-	if err != nil {
-		return err
-	}
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-		return lw.db.Put([]byte(key), encodedValue, nil)
-	}
-}
-
-func (lw *LevelWrapper) Get(key string, ctx context.Context) (interface{}, error) {
-	lw.mu.RLock()
-	defer lw.mu.RUnlock()
-
-	if lw.db == nil {
-		return nil, fmt.Errorf("database not open")
-	}
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
-		value, err := lw.db.Get([]byte(key), nil)
-		if err == leveldb.ErrNotFound {
-			return nil, nil
-		}
-		if err != nil {
+		if err := lw.Open(); err != nil {
 			return nil, err
 		}
-		return decodeValue(value, lw.config.ValueEncoding)
 	}
+
+	// In Go LevelDB, we emulate sublevels by prefixing keys.
+	partitionedWrapper := &LevelWrapper{
+		config: lw.config,
+		db:     lw.db,
+		mu:     sync.RWMutex{},
+	}
+	return partitionedWrapper, nil
 }
 
-func (lw *LevelWrapper) Has(key string, ctx context.Context) (bool, error) {
-	lw.mu.RLock()
-	defer lw.mu.RUnlock()
-
+// Get retrieves a value by key.
+func (lw *LevelWrapper) Get(key string, options *LevelWrapperOptions) ([]byte, error) {
 	if lw.db == nil {
-		return false, fmt.Errorf("database not open")
+		if err := lw.Open(); err != nil {
+			return nil, err
+		}
 	}
 
-	select {
-	case <-ctx.Done():
-		return false, ctx.Err()
-	default:
-		return lw.db.Has([]byte(key), nil)
+	if options != nil && options.Context != nil {
+		select {
+		case <-options.Context.Done():
+			return nil, options.Context.Err()
+		default:
+		}
 	}
+
+	data, err := lw.db.Get([]byte(key), nil)
+	if err == leveldb.ErrNotFound {
+		return nil, nil
+	}
+	return data, err
 }
 
-func (lw *LevelWrapper) Delete(key string, ctx context.Context) error {
-	lw.mu.Lock()
-	defer lw.mu.Unlock()
-
+// Has checks if a key exists.
+func (lw *LevelWrapper) Has(key string, options *LevelWrapperOptions) (bool, error) {
 	if lw.db == nil {
-		return fmt.Errorf("database not open")
+		if err := lw.Open(); err != nil {
+			return false, err
+		}
 	}
 
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-		return lw.db.Delete([]byte(key), nil)
+	if options != nil && options.Context != nil {
+		select {
+		case <-options.Context.Done():
+			return false, options.Context.Err()
+		default:
+		}
 	}
+
+	return lw.db.Has([]byte(key), nil)
 }
 
+// Put stores a key-value pair.
+func (lw *LevelWrapper) Put(key string, value []byte, options *LevelWrapperOptions) error {
+	if lw.db == nil {
+		if err := lw.Open(); err != nil {
+			return err
+		}
+	}
+
+	if options != nil && options.Context != nil {
+		select {
+		case <-options.Context.Done():
+			return options.Context.Err()
+		default:
+		}
+	}
+
+	return lw.db.Put([]byte(key), value, nil)
+}
+
+// Delete removes a key-value pair.
+func (lw *LevelWrapper) Delete(key string, options *LevelWrapperOptions) error {
+	if lw.db == nil {
+		if err := lw.Open(); err != nil {
+			return err
+		}
+	}
+
+	if options != nil && options.Context != nil {
+		select {
+		case <-options.Context.Done():
+			return options.Context.Err()
+		default:
+		}
+	}
+
+	return lw.db.Delete([]byte(key), nil)
+}
+
+// IsEmpty checks if the database is empty.
+func (lw *LevelWrapper) IsEmpty(options *LevelWrapperOptions) (bool, error) {
+	if lw.db == nil {
+		if err := lw.Open(); err != nil {
+			return false, err
+		}
+	}
+
+	if options != nil && options.Context != nil {
+		select {
+		case <-options.Context.Done():
+			return false, options.Context.Err()
+		default:
+		}
+	}
+
+	iter := lw.db.NewIterator(nil, nil)
+	defer iter.Release()
+	return !iter.Next(), iter.Error()
+}
+
+// Clear removes all entries from the database.
 func (lw *LevelWrapper) Clear() error {
-	lw.mu.Lock()
-	defer lw.mu.Unlock()
-
 	if lw.db == nil {
-		return fmt.Errorf("database not open")
+		if err := lw.Open(); err != nil {
+			return err
+		}
 	}
 
 	iter := lw.db.NewIterator(nil, nil)
@@ -183,91 +215,83 @@ func (lw *LevelWrapper) Clear() error {
 	for iter.Next() {
 		batch.Delete(iter.Key())
 	}
-
 	return lw.db.Write(batch, nil)
 }
 
-func (lw *LevelWrapper) IsEmpty(ctx context.Context) (bool, error) {
-	lw.mu.RLock()
-	defer lw.mu.RUnlock()
-
+// Batch executes a batch of operations.
+func (lw *LevelWrapper) Batch(operations []LevelWrapperBatchOperation, options *LevelWrapperOptions) error {
 	if lw.db == nil {
-		return false, fmt.Errorf("database not open")
+		if err := lw.Open(); err != nil {
+			return err
+		}
 	}
 
-	iter := lw.db.NewIterator(nil, nil)
-	defer iter.Release()
-
-	select {
-	case <-ctx.Done():
-		return false, ctx.Err()
-	default:
-		return !iter.Next(), nil
-	}
-}
-
-func (lw *LevelWrapper) Batch(operations []BatchOperation, ctx context.Context) error {
-	lw.mu.Lock()
-	defer lw.mu.Unlock()
-
-	if lw.db == nil {
-		return fmt.Errorf("database not open")
+	if options != nil && options.Context != nil {
+		select {
+		case <-options.Context.Done():
+			return options.Context.Err()
+		default:
+		}
 	}
 
 	batch := new(leveldb.Batch)
 	for _, op := range operations {
 		switch op.Type {
 		case "put":
-			batch.Put([]byte(op.Key), op.Value)
+			batch.Put(op.Key, op.Value)
 		case "del":
-			batch.Delete([]byte(op.Key))
+			batch.Delete(op.Key)
 		default:
-			return fmt.Errorf("unknown operation type: %s", op.Type)
+			return errors.New("unknown operation type")
 		}
 	}
 
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-		return lw.db.Write(batch, nil)
-	}
+	return lw.db.Write(batch, nil)
 }
 
-func (lw *LevelWrapper) Iterator(options *util.Range, ctx context.Context) *leveldb.Iterator {
-	lw.mu.RLock()
-	defer lw.mu.RUnlock()
-
+// Keys returns an iterator over the keys.
+func (lw *LevelWrapper) Keys(options *LevelWrapperOptions) (iterator.Iterator, error) {
 	if lw.db == nil {
-		return nil
-	}
-
-	return lw.db.NewIterator(options, nil)
-}
-
-func encodeValue(value interface{}, encoding string) ([]byte, error) {
-	switch encoding {
-	case "json":
-		return json.Marshal(value)
-	case "utf8":
-		if s, ok := value.(string); ok {
-			return []byte(s), nil
+		if err := lw.Open(); err != nil {
+			return nil, err
 		}
-		return nil, fmt.Errorf("value is not a string for utf8 encoding")
-	default:
-		return nil, fmt.Errorf("unsupported encoding: %s", encoding)
 	}
+
+	if options != nil && options.Context != nil {
+		select {
+		case <-options.Context.Done():
+			return nil, options.Context.Err()
+		default:
+		}
+	}
+
+	return lw.db.NewIterator(nil, nil), nil
 }
 
-func decodeValue(value []byte, encoding string) (interface{}, error) {
-	switch encoding {
-	case "json":
-		var v interface{}
-		err := json.Unmarshal(value, &v)
-		return v, err
-	case "utf8":
-		return string(value), nil
-	default:
-		return nil, fmt.Errorf("unsupported encoding: %s", encoding)
+// Iterator returns an iterator over key-value pairs with options.
+func (lw *LevelWrapper) Iterator(iterOptions *LevelWrapperIteratorOptions, options *LevelWrapperOptions) (iterator.Iterator, error) {
+	if lw.db == nil {
+		if err := lw.Open(); err != nil {
+			return nil, err
+		}
 	}
+
+	if options != nil && options.Context != nil {
+		select {
+		case <-options.Context.Done():
+			return nil, options.Context.Err()
+		default:
+		}
+	}
+
+	var rangeOpt *util.Range
+	if iterOptions != nil {
+		rangeOpt = &util.Range{
+			Start: iterOptions.Start,
+			Limit: iterOptions.Limit,
+		}
+	}
+
+	iter := lw.db.NewIterator(rangeOpt, nil)
+	return iter, nil
 }

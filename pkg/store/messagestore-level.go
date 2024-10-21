@@ -3,74 +3,93 @@ package store
 import (
 	"context"
 
+	"github.com/fxamacker/cbor/v2"
 	"github.com/ipfs/go-cid"
+	cbornode "github.com/ipfs/go-ipld-cbor"
 	"github.com/multiformats/go-multihash"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
+// MessageStoreLevel represents a message store using LevelDB
 type MessageStoreLevel struct {
 	blockstore *BlockstoreLevel
 	index      *IndexLevel
 	config     MessageStoreLevelConfig
 }
 
+// MessageStoreLevelConfig holds configuration for MessageStoreLevel
 type MessageStoreLevelConfig struct {
 	BlockstoreLocation  string
 	IndexLocation       string
 	CreateLevelDatabase func(string) (*LevelWrapper, error)
 }
 
+// MessageStoreOptions contains options for message store operations
 type MessageStoreOptions struct {
 	Signal context.Context
 }
 
+// SortDirection represents the direction of sorting
+type SortDirection string
+
+// Sort direction constants
+const (
+	SortAscending  SortDirection = "asc"
+	SortDescending SortDirection = "desc"
+)
+
+// MessageSort specifies sorting options for messages
 type MessageSort struct {
 	DateCreated      *SortDirection
 	DatePublished    *SortDirection
 	MessageTimestamp *SortDirection
 }
 
+// Pagination specifies pagination options
 type Pagination struct {
 	Limit  int
 	Cursor string
 }
 
-func NewMessageStoreLevel(config MessageStoreLevelConfig) *MessageStoreLevel {
+// NewMessageStoreLevel creates a new MessageStoreLevel instance
+func NewMessageStoreLevel(config MessageStoreLevelConfig) (*MessageStoreLevel, error) {
 	if config.CreateLevelDatabase == nil {
-		config.CreateLevelDatabase = createLevelDatabase
+		config.CreateLevelDatabase = func(path string) (*LevelWrapper, error) {
+			return createLevelDatabase(path), nil
+		}
+	}
+
+	bs, err := NewBlockstoreLevel(config.BlockstoreLocation)
+	if err != nil {
+		return nil, err
+	}
+
+	idx, err := NewIndexLevel(IndexLevelConfig{
+		Location: config.IndexLocation,
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return &MessageStoreLevel{
-		blockstore: func() *BlockstoreLevel {
-			bs, err := NewBlockstoreLevel(config.BlockstoreLocation)
-			if err != nil {
-				// Handle the error appropriately, e.g., log it or panic
-				panic(err)
-			}
-			return bs
-		}(),
-		index: NewIndexLevel(IndexLevelConfig{
-			Location:            config.IndexLocation,
-			CreateLevelDatabase: config.CreateLevelDatabase,
-		}),
-		config: config,
-	}
+		blockstore: bs,
+		index:      idx,
+		config:     config,
+	}, nil
 }
 
+// Open opens the message store
 func (msl *MessageStoreLevel) Open() error {
-	if err := msl.blockstore.Open(); err != nil {
-		return err
-	}
-	return msl.index.Open()
+	return msl.blockstore.Open()
 }
 
+// Close closes the message store
 func (msl *MessageStoreLevel) Close() error {
-	if err := msl.blockstore.Close(); err != nil {
-		return err
-	}
-	return msl.index.Close()
+	return msl.blockstore.Close()
 }
 
-func (msl *MessageStoreLevel) Get(tenant string, cidString string, options *MessageStoreOptions) (GenericMessage, error) {
+// Get retrieves a message by its CID
+func (msl *MessageStoreLevel) Get(tenant, cidString string, options *MessageStoreOptions) (GenericMessage, error) {
 	if options != nil && options.Signal != nil {
 		select {
 		case <-options.Signal.Done():
@@ -89,13 +108,12 @@ func (msl *MessageStoreLevel) Get(tenant string, cidString string, options *Mess
 		return nil, err
 	}
 
-	bytes, err := partition.Get(c)
+	bytes, err := partition.Get(context.Background(), c)
 	if err != nil {
 		return nil, err
 	}
-
 	var message GenericMessage
-	err = cbornode.DecodeInto(bytes, &message)
+	err = cbor.Unmarshal(bytes, &message)
 	if err != nil {
 		return nil, err
 	}
@@ -103,6 +121,7 @@ func (msl *MessageStoreLevel) Get(tenant string, cidString string, options *Mess
 	return message, nil
 }
 
+// Query retrieves messages based on filters and sorting options
 func (msl *MessageStoreLevel) Query(tenant string, filters []Filter, messageSort *MessageSort, pagination *Pagination, options *MessageStoreOptions) ([]GenericMessage, string, error) {
 	if options != nil && options.Signal != nil {
 		select {
@@ -113,12 +132,12 @@ func (msl *MessageStoreLevel) Query(tenant string, filters []Filter, messageSort
 	}
 
 	queryOptions := buildQueryOptions(messageSort, pagination)
-	results, err := msl.index.Query(tenant, filters, queryOptions, options.Signal)
+	results, err := msl.index.Query(tenant, filters, queryOptions, &IndexLevelOptions{})
 	if err != nil {
 		return nil, "", err
 	}
 
-	var messages []GenericMessage
+	messages := make([]GenericMessage, 0, len(results))
 	for _, messageCid := range results {
 		message, err := msl.Get(tenant, messageCid, options)
 		if err == nil {
@@ -135,7 +154,8 @@ func (msl *MessageStoreLevel) Query(tenant string, filters []Filter, messageSort
 	return messages, cursor, nil
 }
 
-func (msl *MessageStoreLevel) Delete(tenant string, cidString string, options *MessageStoreOptions) error {
+// Delete removes a message from the store
+func (msl *MessageStoreLevel) Delete(tenant, cidString string, options *MessageStoreOptions) error {
 	if options != nil && options.Signal != nil {
 		select {
 		case <-options.Signal.Done():
@@ -154,13 +174,14 @@ func (msl *MessageStoreLevel) Delete(tenant string, cidString string, options *M
 		return err
 	}
 
-	if err := partition.Delete(c); err != nil {
+	if err := partition.Delete(context.Background(), c); err != nil {
 		return err
 	}
 
-	return msl.index.Delete(tenant, cidString, options.Signal)
+	return msl.index.Delete(tenant, cidString, &IndexLevelOptions{})
 }
 
+// Put stores a new message in the store
 func (msl *MessageStoreLevel) Put(tenant string, message GenericMessage, indexes KeyValues, options *MessageStoreOptions) error {
 	if options != nil && options.Signal != nil {
 		select {
@@ -181,14 +202,15 @@ func (msl *MessageStoreLevel) Put(tenant string, message GenericMessage, indexes
 	}
 
 	messageCid := encodedMessage.Cid()
-	if err := partition.Put(messageCid, encodedMessage.RawData()); err != nil {
+	if err := partition.Put(context.Background(), messageCid, encodedMessage.RawData()); err != nil {
 		return err
 	}
 
 	messageCidString := messageCid.String()
-	return msl.index.Put(tenant, messageCidString, indexes, options.Signal)
+	return msl.index.Put(tenant, messageCidString, indexes, &IndexLevelOptions{})
 }
 
+// Clear removes all messages from the store
 func (msl *MessageStoreLevel) Clear() error {
 	if err := msl.blockstore.Clear(); err != nil {
 		return err
@@ -198,20 +220,20 @@ func (msl *MessageStoreLevel) Clear() error {
 
 func buildQueryOptions(messageSort *MessageSort, pagination *Pagination) QueryOptions {
 	queryOptions := QueryOptions{
-		SortDirection: SortDirectionAscending,
+		SortDirection: string(SortAscending),
 		SortProperty:  "messageTimestamp",
 	}
 
 	if messageSort != nil {
 		if messageSort.DateCreated != nil {
 			queryOptions.SortProperty = "dateCreated"
-			queryOptions.SortDirection = *messageSort.DateCreated
+			queryOptions.SortDirection = string(*messageSort.DateCreated)
 		} else if messageSort.DatePublished != nil {
 			queryOptions.SortProperty = "datePublished"
-			queryOptions.SortDirection = *messageSort.DatePublished
+			queryOptions.SortDirection = string(*messageSort.DatePublished)
 		} else if messageSort.MessageTimestamp != nil {
 			queryOptions.SortProperty = "messageTimestamp"
-			queryOptions.SortDirection = *messageSort.MessageTimestamp
+			queryOptions.SortDirection = string(*messageSort.MessageTimestamp)
 		}
 	}
 
@@ -226,8 +248,7 @@ func buildQueryOptions(messageSort *MessageSort, pagination *Pagination) QueryOp
 	return queryOptions
 }
 
-func createLevelDatabase(path string) (*LevelWrapper, error) {
-	return NewLevelWrapper(&LevelWrapperConfig{
-		Location: path,
-	})
+func createLevelDatabase(path string) *LevelWrapper {
+	wrapper := NewLevelWrapper(LevelWrapperConfig{Location: path, OpenOptions: &opt.Options{NoSync: true}})
+	return wrapper
 }
