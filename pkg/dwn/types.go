@@ -21,7 +21,7 @@ type DwnConfig struct {
 	MessageStore       MessageStore
 	DataStore          DataStore
 	EventLog           EventLog
-	BlockstoreLocation string // Add this field
+	BlockstoreLocation string
 }
 
 // Sort options

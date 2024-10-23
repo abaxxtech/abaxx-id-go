@@ -5,7 +5,7 @@ import (
 )
 
 func TestCreateBlockStore(t *testing.T) {
-	bs, err := NewBlockstoreLevel("test-blockstore")
+	bs, err := NewBlockstoreLevel("data/test-blockstore")
 	if err != nil {
 		t.Fatalf("Failed to create BlockStore: %v", err)
 	}
@@ -17,7 +17,7 @@ func TestCreateBlockStore(t *testing.T) {
 
 func TestCreateDataStore(t *testing.T) {
 	ds, err := NewDataStoreLevel(DataStoreLevelConfig{
-		BlockstoreLocation: "test-datastore",
+		BlockstoreLocation: "data/test-datastore",
 	})
 	if err != nil {
 		t.Fatalf("Failed to create DataStore: %v", err)
@@ -30,8 +30,8 @@ func TestCreateDataStore(t *testing.T) {
 
 func TestCreateMessageStore(t *testing.T) {
 	ms, err := NewMessageStoreLevel(MessageStoreLevelConfig{
-		BlockstoreLocation: "test-messagestore",
-		IndexLocation:      "test-index",
+		BlockstoreLocation: "data/test-messagestore",
+		IndexLocation:      "data/test-index",
 	})
 	if err != nil {
 		t.Fatalf("Failed to create MessageStore: %v", err)

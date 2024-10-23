@@ -1,6 +1,7 @@
 bin
 .DS_Store
 
+pkg/store/data/
 test-blockstore
 test-datastore
 test-index
