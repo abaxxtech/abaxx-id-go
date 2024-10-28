@@ -131,8 +131,8 @@ github.com/ipfs/go-ipfs-ds-help v1.1.1 h1:B5UJOH52IbcfS56+Ul+sv8jnIV10lbjLF5eOO0
 github.com/ipfs/go-ipfs-ds-help v1.1.1/go.mod h1:75vrVCkSdSFidJscs8n4W+77AtTpCIAdDGAwjitJMIo=
 github.com/ipfs/go-ipfs-exchange-interface v0.2.1 h1:jMzo2VhLKSHbVe+mHNzYgs95n0+t0Q69GQ5WhRDZV/s=
 github.com/ipfs/go-ipfs-exchange-interface v0.2.1/go.mod h1:MUsYn6rKbG6CTtsDp+lKJPmVt3ZrCViNyH3rfPGsZ2E=
-github.com/ipfs/go-ipfs-exchange-offline v0.3.0 h1:c/Dg8GDPzixGd0MC8Jh6mjOwU57uYokgWRFidfvEkuA=
-github.com/ipfs/go-ipfs-exchange-offline v0.3.0/go.mod h1:MOdJ9DChbb5u37M1IcbrRB02e++Z7521fMxqCNRrz9s=
+github.com/ipfs/go-ipfs-exchange-offline v0.3.1 h1:1A8To/eJOJ5Ef1gpDxdgNN3wKdAnOCIpxVKLgtfzjHc=
+github.com/ipfs/go-ipfs-exchange-offline v0.3.1/go.mod h1:pDcONecfkyShEwf4hZDQDyXYyryw/zRD0Dg1oZ7jYzk=
 github.com/ipfs/go-ipfs-files v0.3.0 h1:fallckyc5PYjuMEitPNrjRfpwl7YFt69heCOUhsbGxQ=
 github.com/ipfs/go-ipfs-files v0.3.0/go.mod h1:xAUtYMwB+iu/dtf6+muHNSFQCJG2dSiStR2P6sn9tIM=
 github.com/ipfs/go-ipfs-posinfo v0.0.1 h1:Esoxj+1JgSjX0+ylc0hUmJCOv6V2vFoZiETLR6OtpRs=
