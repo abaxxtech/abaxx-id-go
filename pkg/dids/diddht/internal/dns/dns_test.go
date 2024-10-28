@@ -26,6 +26,7 @@ func WithDNSRecord(name, body string) DHTTXTResourceOpt {
 		}
 	}
 }
+
 func makeDNSMessage(answersOpt ...DHTTXTResourceOpt) dnsmessage.Message {
 
 	answers := []dnsmessage.Resource{}
@@ -40,6 +41,7 @@ func makeDNSMessage(answersOpt ...DHTTXTResourceOpt) dnsmessage.Message {
 
 	return msg
 }
+
 func Test_parseDNSDID(t *testing.T) {
 	tests := map[string]struct {
 		msg           dnsmessage.Message

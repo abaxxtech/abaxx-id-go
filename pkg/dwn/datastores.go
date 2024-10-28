@@ -74,7 +74,7 @@ type MessageStore interface {
 
 	Open() error
 	Close() error
- }
+}
 
 // The data store can index items for each message.
 // These are the types to support that.

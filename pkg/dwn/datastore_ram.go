@@ -103,11 +103,13 @@ func (l *MemoryEventLog) Clear() error {
 	return nil
 }
 
-// MessageStore
-type Message struct {
-	cid     MessageCid
-	indexes map[string]IndexableValue
+type GenericMessage struct {
+	descriptor Descriptor
+	data       []byte
 }
+
+// MessageStore
+type Message struct{}
 
 type MemoryMessageStore struct {
 	messages map[MessageCid]IndexableValue
