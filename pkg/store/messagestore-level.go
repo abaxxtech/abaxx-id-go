@@ -43,6 +43,9 @@ type MessageSort struct {
 	DateCreated      *SortDirection
 	DatePublished    *SortDirection
 	MessageTimestamp *SortDirection
+	Property         string // The property/column to sort by
+	Direction        string // The sort direction ("ASC" or "DESC")
+
 }
 
 // Pagination specifies pagination options
