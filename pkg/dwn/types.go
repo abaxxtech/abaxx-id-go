@@ -34,6 +34,8 @@ const (
 )
 
 type MessageSort struct {
+	Property         string
+	Direction        SortDirection
 	DateCreated      SortDirection
 	DatePublished    SortDirection
 	MessageTimestamp SortDirection
@@ -42,4 +44,5 @@ type MessageSort struct {
 type Pagination struct {
 	Cursor string
 	Limit  int
+	Offset int
 }

@@ -9,25 +9,6 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
-// Filter represents a query filter
-// type Filter struct {
-// 	Property string      // The property/column to filter on
-// 	Operator string      // The operator to use (e.g., "=", ">", "<", "LIKE")
-// 	Value    interface{} // The value to filter by
-// }
-
-// MessageStoreSQL represents a message store using SQL database
-type MessageStoreSQL struct {
-	db     *sql.DB
-	config MessageStoreSQLConfig
-}
-
-// MessageStoreSQLConfig holds configuration for MessageStoreSQL
-type MessageStoreSQLConfig struct {
-	DriverName     string
-	DataSourceName string
-}
-
 // NewMessageStoreSQL creates a new MessageStoreSQL instance
 func NewMessageStoreSQL(config MessageStoreSQLConfig) (*MessageStoreSQL, error) {
 	return &MessageStoreSQL{
