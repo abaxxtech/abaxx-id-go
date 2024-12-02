@@ -4,7 +4,7 @@ go 1.22.1
 
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
-	github.com/alecthomas/kong v1.2.1
+	github.com/alecthomas/kong v1.5.0
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/fxamacker/cbor/v2 v2.7.0
@@ -34,7 +34,6 @@ require (
 
 require (
 	github.com/PaesslerAG/gval v1.0.0 // indirect
-	github.com/alecthomas/assert/v2 v2.11.0 // indirect
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b // indirect
 	github.com/crackcomm/go-gitignore v0.0.0-20241020182519-7843d2ba8fdf // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
