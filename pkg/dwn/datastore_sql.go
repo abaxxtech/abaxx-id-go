@@ -8,20 +8,20 @@ import (
 	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
-// SQLConfig holds configuration for SQL-based storage
-type SQLConfig struct {
-	DriverName     string
-	DataSourceName string
+// SQLStoreConfig holds configuration for SQL-based storage
+type SQLStoreConfig struct {
+	DriverName     string // e.g., "postgres"
+	DataSourceName string // e.g., "postgres://user:password@localhost:5432/dbname?sslmode=disable"
 }
 
 // SQLStore implements MessageStore interface using SQL database
 type SQLStore struct {
 	db     *sql.DB
-	config SQLConfig
+	config SQLStoreConfig
 }
 
 // NewSQLStore creates a new SQLStore instance
-func NewSQLStore(config SQLConfig) (*SQLStore, error) {
+func NewSQLStore(config SQLStoreConfig) (*SQLStore, error) {
 	return &SQLStore{
 		config: config,
 	}, nil
@@ -35,43 +35,20 @@ func (s *SQLStore) Open() error {
 	}
 	s.db = db
 
-	// Create the message store table
+	// Create the messages table
 	schema := `
-	CREATE TABLE IF NOT EXISTS messages (
+	CREATE TABLE IF NOT EXISTS dwn_messages (
 		id SERIAL PRIMARY KEY,
 		tenant TEXT NOT NULL,
 		message_cid TEXT NOT NULL,
 		message_data BYTEA NOT NULL,
-		interface TEXT,
-		method TEXT,
-		schema TEXT,
-		data_cid TEXT,
-		data_size TEXT,
-		date_created TEXT,
-		message_timestamp TEXT,
-		data_format TEXT,
-		is_latest_base_state TEXT,
-		published TEXT,
-		author TEXT,
-		record_id TEXT,
-		entry_id TEXT,
-		date_published TEXT,
-		latest TEXT,
-		protocol TEXT,
-		date_expires TEXT,
-		description TEXT,
-		granted_to TEXT,
-		granted_by TEXT,
-		granted_for TEXT,
-		permissions_request_id TEXT,
-		attester TEXT,
-		protocol_path TEXT,
-		recipient TEXT,
-		context_id TEXT,
-		parent_id TEXT,
-		permissions_grant_id TEXT,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 		UNIQUE(tenant, message_cid)
-	)`
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_dwn_messages_tenant ON dwn_messages(tenant);
+	CREATE INDEX IF NOT EXISTS idx_dwn_messages_message_cid ON dwn_messages(message_cid);
+	`
 
 	_, err = s.db.Exec(schema)
 	if err != nil {
@@ -89,14 +66,14 @@ func (s *SQLStore) Close() error {
 	return nil
 }
 
+// Clear removes all messages (for testing)
+func (s *SQLStore) Clear() error {
+	_, err := s.db.Exec("DELETE FROM dwn_messages")
+	return err
+}
+
 // Put stores a new message
 func (s *SQLStore) Put(tenant Tenant, message interface{}, indexes IndexableKeyValues) error {
-	// Encode message using CBOR
-	messageBytes, err := cbor.Marshal(message)
-	if err != nil {
-		return fmt.Errorf("failed to encode message: %w", err)
-	}
-
 	// Begin transaction
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -104,57 +81,31 @@ func (s *SQLStore) Put(tenant Tenant, message interface{}, indexes IndexableKeyV
 	}
 	defer tx.Rollback()
 
-	// Insert message
-	query := `
-		INSERT INTO messages (
-			tenant, message_cid, message_data,
-			interface, method, schema, data_cid, data_size,
-			date_created, message_timestamp, data_format,
-			is_latest_base_state, published, author, record_id,
-			entry_id, date_published, latest, protocol,
-			date_expires, description, granted_to, granted_by,
-			granted_for, permissions_request_id, attester,
-			protocol_path, recipient, context_id, parent_id,
-			permissions_grant_id
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)
-	`
-
-	// Convert IndexableKeyValues to strings
-	args := []interface{}{
-		tenant,
-		message.(map[string]interface{})["cid"],
-		messageBytes,
-		indexes["interface"],
-		indexes["method"],
-		indexes["schema"],
-		indexes["dataCid"],
-		indexes["dataSize"],
-		indexes["dateCreated"],
-		indexes["messageTimestamp"],
-		indexes["dataFormat"],
-		indexes["isLatestBaseState"],
-		indexes["published"],
-		indexes["author"],
-		indexes["recordId"],
-		indexes["entryId"],
-		indexes["datePublished"],
-		indexes["latest"],
-		indexes["protocol"],
-		indexes["dateExpires"],
-		indexes["description"],
-		indexes["grantedTo"],
-		indexes["grantedBy"],
-		indexes["grantedFor"],
-		indexes["permissionsRequestId"],
-		indexes["attester"],
-		indexes["protocolPath"],
-		indexes["recipient"],
-		indexes["contextId"],
-		indexes["parentId"],
-		indexes["permissionsGrantId"],
+	// Extract message CID from the message
+	msgMap, ok := message.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("message must be a map[string]interface{}")
 	}
 
-	_, err = tx.Exec(query, args...)
+	messageCid, ok := msgMap["cid"].(string)
+	if !ok {
+		return fmt.Errorf("message must have a cid field")
+	}
+
+	// Encode the message
+	messageBytes, err := cbor.Marshal(message)
+	if err != nil {
+		return fmt.Errorf("failed to encode message: %w", err)
+	}
+
+	// Insert the message
+	query := `
+		INSERT INTO dwn_messages (tenant, message_cid, message_data)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (tenant, message_cid) DO UPDATE 
+		SET message_data = EXCLUDED.message_data
+	`
+	_, err = tx.Exec(query, tenant, messageCid, messageBytes)
 	if err != nil {
 		return fmt.Errorf("failed to insert message: %w", err)
 	}
@@ -165,7 +116,7 @@ func (s *SQLStore) Put(tenant Tenant, message interface{}, indexes IndexableKeyV
 // Get retrieves a message by its CID
 func (s *SQLStore) Get(tenant Tenant, messageCid MessageCid) (interface{}, error) {
 	var messageBytes []byte
-	query := `SELECT message_data FROM messages WHERE tenant = $1 AND message_cid = $2`
+	query := `SELECT message_data FROM dwn_messages WHERE tenant = $1 AND message_cid = $2`
 	err := s.db.QueryRow(query, tenant, messageCid).Scan(&messageBytes)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -183,9 +134,23 @@ func (s *SQLStore) Get(tenant Tenant, messageCid MessageCid) (interface{}, error
 	return message, nil
 }
 
-// Query retrieves messages based on filters
+// Add these constants at the package level
+const (
+	SortDirectionAsc  = "ASC"
+	SortDirectionDesc = "DESC"
+)
+
+// Add this helper function
+func getSortDirectionString(direction SortDirection) string {
+	if direction == Descending {
+		return SortDirectionDesc
+	}
+	return SortDirectionAsc
+}
+
+// Update the Query method (replace the existing sort direction handling)
 func (s *SQLStore) Query(tenant Tenant, filters []Filter, sort MessageSort, pagination Pagination) error {
-	query := `SELECT message_data FROM messages WHERE tenant = $1`
+	query := `SELECT message_data FROM dwn_messages WHERE tenant = $1`
 	args := []interface{}{tenant}
 	paramCount := 1
 
@@ -196,16 +161,19 @@ func (s *SQLStore) Query(tenant Tenant, filters []Filter, sort MessageSort, pagi
 		args = append(args, filter.Value())
 	}
 
-	if sort.Property != "" && sort.Direction != 0 {
-		direction := "ASC"
-		if sort.Direction == Descending {
-			direction = "DESC"
-		}
-		query += fmt.Sprintf(" ORDER BY %s %s", sort.Property, direction)
+	// Add sorting if provided
+	if sort.Property != "" {
+		query += fmt.Sprintf(" ORDER BY %s %s", sort.Property, getSortDirectionString(sort.Direction))
 	}
 
-	if pagination.Cursor != "" {
-		query += fmt.Sprintf(" LIMIT %d OFFSET %d", pagination.Limit, pagination.Offset)
+	// Add pagination if provided
+	if pagination != (Pagination{}) {
+		if pagination.Limit > 0 {
+			query += fmt.Sprintf(" LIMIT %d", pagination.Limit)
+		}
+		if pagination.Offset > 0 {
+			query += fmt.Sprintf(" OFFSET %d", pagination.Offset)
+		}
 	}
 
 	rows, err := s.db.Query(query, args...)
@@ -219,7 +187,7 @@ func (s *SQLStore) Query(tenant Tenant, filters []Filter, sort MessageSort, pagi
 
 // Delete removes a message
 func (s *SQLStore) Delete(tenant Tenant, messageCid MessageCid) error {
-	query := `DELETE FROM messages WHERE tenant = $1 AND message_cid = $2`
+	query := `DELETE FROM dwn_messages WHERE tenant = $1 AND message_cid = $2`
 	result, err := s.db.Exec(query, tenant, messageCid)
 	if err != nil {
 		return fmt.Errorf("failed to delete message: %w", err)
@@ -235,10 +203,4 @@ func (s *SQLStore) Delete(tenant Tenant, messageCid MessageCid) error {
 	}
 
 	return nil
-}
-
-// Clear removes all messages (for testing)
-func (s *SQLStore) Clear() error {
-	_, err := s.db.Exec("DELETE FROM messages")
-	return err
 }
