@@ -355,7 +355,7 @@ func TestGormMessageStore_Delete(t *testing.T) {
 }
 
 func TestGormMessageStore_MultiTenant(t *testing.T) {
-	store := setupTestGormStore(t)
+	store := setupTestGormStoreWithoutCleanup(t)
 	defer cleanupTestGormStore(t, store)
 
 	messageBytes := []byte(`{"cid":"test-cid","content":"test message"}`)
