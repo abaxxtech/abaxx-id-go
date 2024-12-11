@@ -80,11 +80,10 @@ func setupTestDB(t *testing.T) (*gorm.DB, TestData) {
 		},
 		DataStoreReference: []DataStoreReference{
 			{
-				Tenant:        "test-tenant-1",
-				SourceCid:     "test-cid-1",
-				TargetCid:     "test-data-cid-1",
-				ReferenceType: "message-data",
-				DateCreated:   time.Now().String(),
+				Tenant:      "test-tenant-1",
+				MessageCid:  "test-cid-1",
+				DataCid:     "test-data-cid-1",
+				DateCreated: time.Now().String(),
 			},
 		},
 		EventLog: []EventLog{
