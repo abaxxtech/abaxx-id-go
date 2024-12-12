@@ -7,6 +7,7 @@ import (
 	"github.com/abaxxtech/abaxx-id-go/pkg/store/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var (
@@ -28,7 +29,9 @@ func GetDB(config config.DBConfig) (*gorm.DB, error) {
 			config.SSLMode,
 		)
 
-		instance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		instance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Silent),
+		})
 		if err != nil {
 			return
 		}

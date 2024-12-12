@@ -15,9 +15,9 @@ func NewDefaultConfig() DBConfig {
 	return DBConfig{
 		Host:     "localhost",
 		Port:     "5432",
-		User:     "test",
-		Password: "testonly",
-		DBName:   "dwn_test",
+		User:     "postgres",
+		Password: "postgres",
+		DBName:   "dwn",
 		SSLMode:  "disable",
 	}
 }
