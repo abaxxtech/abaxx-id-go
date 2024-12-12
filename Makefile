@@ -5,7 +5,7 @@ run: build
 	@./bin/abaxx-id
 
 test:
-	@go test ./...
+	@go test -short ./...
 
 clean:
 	@rm -rf bin

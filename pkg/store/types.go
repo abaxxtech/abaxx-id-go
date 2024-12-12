@@ -1,6 +1,10 @@
 package store
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/abaxxtech/abaxx-id-go/pkg/store/config"
+)
 
 type GenericMessage interface{}
 
@@ -18,8 +22,7 @@ type MessageStoreSQL struct {
 
 // MessageStoreSQLConfig holds configuration for MessageStoreSQL
 type MessageStoreSQLConfig struct {
-	DriverName     string
-	DataSourceName string
+	DBConfig config.DBConfig
 }
 
 // type KeyValues map[string]interface{}
