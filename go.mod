@@ -9,7 +9,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/fxamacker/cbor/v2 v2.7.0
 	github.com/google/uuid v1.6.0
-	github.com/ipfs/boxo v0.24.3
+	github.com/ipfs/boxo v0.26.0
 	github.com/ipfs/go-blockservice v0.5.2
 	github.com/ipfs/go-cid v0.4.1
 	github.com/ipfs/go-datastore v0.6.0
@@ -30,7 +30,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/tv42/zbase32 v0.0.0-20220222190657-f76a9fc892fa
-	golang.org/x/net v0.32.0
+	golang.org/x/net v0.33.0
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
 )
@@ -40,6 +40,7 @@ require (
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b // indirect
 	github.com/crackcomm/go-gitignore v0.0.0-20241020182519-7843d2ba8fdf // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/gammazero/deque v1.0.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
@@ -68,7 +69,7 @@ require (
 	github.com/jbenet/goprocess v0.1.4 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.6 // indirect
@@ -95,12 +96,12 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.30.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
-	google.golang.org/protobuf v1.35.1 // indirect
+	google.golang.org/protobuf v1.36.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
 )
