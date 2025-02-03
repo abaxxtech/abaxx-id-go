@@ -9,7 +9,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/fxamacker/cbor/v2 v2.7.0
 	github.com/google/uuid v1.6.0
-	github.com/ipfs/boxo v0.26.0
+	github.com/ipfs/boxo v0.27.3
 	github.com/ipfs/go-blockservice v0.5.2
 	github.com/ipfs/go-cid v0.4.1
 	github.com/ipfs/go-datastore v0.6.0
