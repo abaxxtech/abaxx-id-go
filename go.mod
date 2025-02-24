@@ -1,6 +1,7 @@
 module github.com/abaxxtech/abaxx-id-go
 
 go 1.22.1
+toolchain go1.23.6
 
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
@@ -12,7 +13,7 @@ require (
 	github.com/ipfs/boxo v0.26.0
 	github.com/ipfs/go-blockservice v0.5.2
 	github.com/ipfs/go-cid v0.4.1
-	github.com/ipfs/go-datastore v0.6.0
+	github.com/ipfs/go-datastore v0.7.0
 	github.com/ipfs/go-ds-leveldb v0.5.0
 	github.com/ipfs/go-ipfs-blockstore v1.3.1
 	github.com/ipfs/go-ipfs-chunker v0.0.6
