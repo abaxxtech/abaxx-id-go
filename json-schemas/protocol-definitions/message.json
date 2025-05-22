@@ -1,0 +1,20 @@
+{
+  "protocol": "http://message-protocol.xyz",
+  "published": true,
+  "types": {
+    "message": {
+      "schema": "http://message.me",
+      "dataFormats": ["text/plain"]
+    }
+  },
+  "structure": {
+    "message": {
+      "$actions": [
+        {
+          "who": "anyone",
+          "can": "write"
+        }
+      ]
+    }
+  }
+}

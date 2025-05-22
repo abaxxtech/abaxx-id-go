@@ -1,0 +1,36 @@
+{
+  "protocol": "http://recipient-can-protocol.xyz",
+  "published": true,
+  "types": {
+    "post": {},
+    "tag": {}
+  },
+  "structure": {
+    "post": {
+      "$actions": [
+        {
+          "who": "recipient",
+          "can": "update"
+        },
+        {
+          "who": "recipient",
+          "can": "delete"
+        }
+      ],
+      "tag": {
+        "$actions": [
+          {
+            "who": "recipient",
+            "of": "post",
+            "can": "update"
+          },
+          {
+            "who": "recipient",
+            "of": "post",
+            "can": "delete"
+          }
+        ]
+      }
+    }
+  }
+}
