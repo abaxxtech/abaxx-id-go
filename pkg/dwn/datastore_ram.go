@@ -1,7 +1,10 @@
 package dwn
 
 import (
+	"fmt"
 	"io"
+	"strings"
+	"time"
 )
 
 // Blob represents a binary large object
@@ -112,23 +115,83 @@ type GenericMessage struct {
 type Message struct{}
 
 type MemoryMessageStore struct {
-	messages map[MessageCid]IndexableValue
+	messages map[string]struct {
+		message   interface{}
+		indexable IndexableKeyValues
+	}
 }
 
 func NewMemoryMessageStore() MessageStore {
 	return &MemoryMessageStore{
-		messages: map[MessageCid]IndexableValue{},
+		messages: make(map[string]struct {
+			message   interface{}
+			indexable IndexableKeyValues
+		}),
 	}
 }
 
-func (*MemoryMessageStore) Put(Tenant,
-	interface{},
-	IndexableKeyValues) (err error) {
+func (m *MemoryMessageStore) Put(tenant Tenant, message interface{}, indexes IndexableKeyValues) (err error) {
+	// For GenericMessage, use the DataCid from the descriptor as the key
+	if genericMsg, ok := message.(*GenericMessage); ok {
+		key := string(tenant) + ":" + string(genericMsg.descriptor.DataCid)
+		m.messages[key] = struct {
+			message   interface{}
+			indexable IndexableKeyValues
+		}{
+			message:   genericMsg,
+			indexable: indexes,
+		}
+		return nil
+	}
+
+	// For map[string]interface{}, try to use "id" field as key
+	if msgMap, ok := message.(map[string]interface{}); ok {
+		if id, ok := msgMap["id"].(string); ok {
+			key := string(tenant) + ":" + id
+			m.messages[key] = struct {
+				message   interface{}
+				indexable IndexableKeyValues
+			}{
+				message:   msgMap,
+				indexable: indexes,
+			}
+			return nil
+		}
+	}
+
+	// If we can't extract a proper key, generate a random one
+	randomID := fmt.Sprintf("msg-%d", time.Now().UnixNano())
+	key := string(tenant) + ":" + randomID
+
+	m.messages[key] = struct {
+		message   interface{}
+		indexable IndexableKeyValues
+	}{
+		message:   message,
+		indexable: indexes,
+	}
+
 	return nil
 }
 
-func (*MemoryMessageStore) Get(Tenant, MessageCid) (msg interface{}, err error) {
-	return nil, nil
+func (m *MemoryMessageStore) Get(tenant Tenant, messageCid MessageCid) (msg interface{}, err error) {
+	key := string(tenant) + ":" + string(messageCid)
+	if stored, ok := m.messages[key]; ok {
+		return stored.message, nil
+	}
+
+	// If not found with direct key, try scanning all messages for matching DataCid
+	for k, v := range m.messages {
+		if strings.HasPrefix(k, string(tenant)+":") {
+			if genericMsg, ok := v.message.(*GenericMessage); ok {
+				if string(genericMsg.descriptor.DataCid) == string(messageCid) {
+					return genericMsg, nil
+				}
+			}
+		}
+	}
+
+	return nil, nil // Not found
 }
 
 func (*MemoryMessageStore) Query(tenant Tenant, filters []Filter,
@@ -143,7 +206,10 @@ func (*MemoryMessageStore) Delete(Tenant, MessageCid) (err error) {
 
 // Test purposes
 func (m *MemoryMessageStore) Clear() (err error) {
-	m.messages = make(map[MessageCid]IndexableValue)
+	m.messages = make(map[string]struct {
+		message   interface{}
+		indexable IndexableKeyValues
+	})
 
 	return nil
 }

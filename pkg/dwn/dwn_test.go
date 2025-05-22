@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// GetKeyById retrieves a key from the DID by its ID
 const authSig = `
 { "signature": 
   {
@@ -148,7 +149,7 @@ func TestAuthSig(t *testing.T) {
 
 }
 
-func ExampleIndexableKeyValues() *IndexableKeyValues {
+func CreateTestIndexableKeyValues() IndexableKeyValues {
 	indexableKV := IndexableKeyValues{
 		"name":    S("John Doe"),
 		"age":     I(30),
@@ -169,7 +170,7 @@ func ExampleIndexableKeyValues() *IndexableKeyValues {
 		fmt.Printf("Error putting message: %v", err)
 	}
 
-	return &indexableKV
+	return indexableKV
 }
 
 func TestCreateDIDAndSaveRecord(t *testing.T) {
@@ -192,10 +193,10 @@ func TestCreateDIDAndSaveRecord(t *testing.T) {
 	}
 
 	// Create indexable key-values for the record
-	indexableKeyValues := ExampleIndexableKeyValues()
+	indexableKeyValues := CreateTestIndexableKeyValues()
 
 	// Save the record to the user's DWN
-	err = dwn.messageStore.Put(Tenant(did), record, *indexableKeyValues)
+	err = dwn.messageStore.Put(Tenant(did), record, indexableKeyValues)
 	assert.NoError(t, err, "Failed to save record to DWN")
 
 	// Log the record before saving
@@ -208,28 +209,27 @@ func TestCreateDIDAndSaveRecord(t *testing.T) {
 	t.Logf("Type of Record: %T", record)
 
 	// Retrieve the saved record
+	retrievedRecord, err := dwn.messageStore.Get(Tenant(did), MessageCid(record.descriptor.DataCid))
+	if err != nil {
+		t.Fatalf("Error retrieving record: %v", err)
+	}
 
-	// retrievedRecord, err := dwn.messageStore.Get(Tenant(did), MessageCid(record.descriptor.DataCid))
-	// if err != nil {
-	// 	t.Fatalf("Error retrieving record: %v", err)
-	// }
+	if retrievedRecord == nil {
+		t.Fatalf("Retrieved record is nil")
+	}
 
-	// if retrievedRecord == nil {
-	// 	t.Fatalf("Retrieved record is nil")
-	// }
+	genericMessage, ok := retrievedRecord.(*GenericMessage)
+	if !ok {
+		t.Fatalf("Retrieved record is not of type *GenericMessage, got: %T", retrievedRecord)
+	}
 
-	// genericMessage, ok := retrievedRecord.(*GenericMessage)
-	// if !ok {
-	// 	t.Fatalf("Retrieved record is not of type *GenericMessage, got: %T", retrievedRecord)
-	// }
+	// Compare the retrieved record with the original
+	assert.Equal(t, record.data, genericMessage.data, "Retrieved record data should match original")
+	assert.Equal(t, record.descriptor.DataCid, genericMessage.descriptor.DataCid, "Retrieved record CID should match original")
 
-	// // Compare the retrieved record with the original
-	// assert.Equal(t, record.data, genericMessage.data, "Retrieved record data should match original")
-	// assert.Equal(t, record.descriptor.DataCid, genericMessage.descriptor.DataCid, "Retrieved record CID should match original")
-
-	// // Add more debugging information
-	// t.Logf("Original record: %+v", record)
-	// t.Logf("Retrieved record: %+v", genericMessage)
+	// Add more debugging information
+	t.Logf("Original record: %+v", record)
+	t.Logf("Retrieved record: %+v", genericMessage)
 }
 
 func GenerateTestDID() (string, *ecdsa.PrivateKey, error) {
