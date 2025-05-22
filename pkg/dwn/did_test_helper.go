@@ -143,4 +143,7 @@ type didDocument struct {
 	KeyAgreement       []interface{} `json:"keyAgreement"`
 	Authentication     []interface{} `json:"authentication"`
 	VerificationMethod []interface{} `json:"verificationMethod"`
+	// AlsoKnownAs is an array of URIs that represent alternative identifiers for the DID subject
+	// https://www.w3.org/TR/did-1.0/#also-known-as
+	AlsoKnownAs []string `json:"alsoKnownAs,omitempty"`
 }

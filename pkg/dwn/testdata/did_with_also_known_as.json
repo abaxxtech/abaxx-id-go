@@ -1,0 +1,156 @@
+{
+  "_id": "user.example@abaxx.tech",
+  "did": "did:ion:EiAFstcguyQzE90I1uqLRga_i1YgN7urCuf2nESRlV-Avw",
+  "timestamp": 1719357408191,
+  "metadata": {
+    "email": "user.example@abaxx.tech",
+    "deviceId": "E7BAA3C5-D02F-49DE-AE5F-F7BF35CAF331",
+    "identity": "did:ion:EiAFstcguyQzE90I1uqLRga_i1YgN7urCuf2nESRlV-Avw",
+    "username": "ExampleUser",
+    "createdAt": 1719357408,
+    "updatedAt": 1719357408,
+    "accountIcon": "briefcase",
+    "accountColor": "#53A6DE",
+    "accountLabel": "ExampleUser",
+    "isFirstTimeLogin": false,
+    "primaryAccountId": "",
+    "verifierPushToken": "",
+    "did": {
+      "did": "did:ion:EiAFstcguyQzE90I1uqLRga_i1YgN7urCuf2nESRlV-Avw",
+      "keySet": {
+        "updateKey": {
+          "publicKeyJwk": {
+            "x": "KoHWys_TvGFNOYSef4aSKWwU2OvvqksX6GToYHbvQvU",
+            "y": "z1WGVM7KJyrVwQ2R0mqR-9wZFNMXdKGht94CECbdE1I",
+            "alg": "ES256K",
+            "crv": "secp256k1",
+            "kty": "EC",
+            "key_ops": ["verify"]
+          },
+          "privateKeyJwk": {
+            "d": "u_6q-d93qjBXOLLl2sLg25AOT1hFx_9zRNSKmeLhDrE",
+            "x": "KoHWys_TvGFNOYSef4aSKWwU2OvvqksX6GToYHbvQvU",
+            "y": "z1WGVM7KJyrVwQ2R0mqR-9wZFNMXdKGht94CECbdE1I",
+            "alg": "ES256K",
+            "crv": "secp256k1",
+            "kty": "EC",
+            "key_ops": ["sign"]
+          }
+        },
+        "recoveryKey": {
+          "publicKeyJwk": {
+            "x": "DiCvMc7NWM-4iTephBuonrj3vhtlladfiTF0tlBPciI",
+            "y": "YVmJOd99NDz78im72w3PjH_x9vTaVckFMaGDsm4xiWI",
+            "alg": "ES256K",
+            "crv": "secp256k1",
+            "kty": "EC",
+            "key_ops": ["verify"]
+          },
+          "privateKeyJwk": {
+            "d": "_hm-LNhM67ZAbPXns82iuuM6Fk1dkWQtr2rXQKEt_XE",
+            "x": "DiCvMc7NWM-4iTephBuonrj3vhtlladfiTF0tlBPciI",
+            "y": "YVmJOd99NDz78im72w3PjH_x9vTaVckFMaGDsm4xiWI",
+            "alg": "ES256K",
+            "crv": "secp256k1",
+            "kty": "EC",
+            "key_ops": ["sign"]
+          }
+        },
+        "verificationMethodKeys": [
+          {
+            "publicKeyJwk": {
+              "x": "tYhyEctG6MKXKpWR_MPnBtag9MAFnG8nMu6H6e71zDQ",
+              "alg": "EdDSA",
+              "crv": "Ed25519",
+              "kid": "#dwn-sig",
+              "kty": "OKP",
+              "key_ops": ["verify"]
+            },
+            "privateKeyJwk": {
+              "d": "6A7rSkGyB9FBAh83TmGeS2Nzl8nEwcSiK-xuKwbWpSI",
+              "x": "tYhyEctG6MKXKpWR_MPnBtag9MAFnG8nMu6H6e71zDQ",
+              "alg": "EdDSA",
+              "crv": "Ed25519",
+              "kid": "#dwn-sig",
+              "kty": "OKP",
+              "key_ops": ["sign"]
+            },
+            "relationships": ["authentication"]
+          },
+          {
+            "publicKeyJwk": {
+              "x": "yGQ8fLfVfE2QIc8RWd6czfjbGE59Eh9afffvL4zErcU",
+              "y": "OTcXckLAlLBjx7P8B7cBQQBNmRQIljylRhlPkzyJC0o",
+              "alg": "ES256K",
+              "crv": "secp256k1",
+              "kid": "#dwn-enc",
+              "kty": "EC",
+              "key_ops": ["verify"]
+            },
+            "privateKeyJwk": {
+              "d": "i6uUy5p8F5MqLFESYHHBPPyHIJ6WHiAxQQJ68YoP-aA",
+              "x": "yGQ8fLfVfE2QIc8RWd6czfjbGE59Eh9afffvL4zErcU",
+              "y": "OTcXckLAlLBjx7P8B7cBQQBNmRQIljylRhlPkzyJC0o",
+              "alg": "ES256K",
+              "crv": "secp256k1",
+              "kid": "#dwn-enc",
+              "kty": "EC",
+              "key_ops": ["sign"]
+            },
+            "relationships": ["keyAgreement"]
+          }
+        ]
+      },
+      "document": {
+        "id": "did:ion:EiAFstcguyQzE90I1uqLRga_i1YgN7urCuf2nESRlV-Avw",
+        "service": [
+          {
+            "id": "#dwn",
+            "type": "DecentralizedWebNode",
+            "serviceEndpoint": {
+              "nodes": [
+                "https://dwn0.dev.abaxx.id",
+                "https://dwn1.dev.abaxx.id",
+                "https://dwn2.dev.abaxx.id"
+              ],
+              "signingKeys": ["#dwn-sig"],
+              "encryptionKeys": ["#dwn-enc"]
+            }
+          }
+        ],
+        "@context": ["https://www.w3.org/ns/did/v1"],
+        "keyAgreement": ["#dwn-enc"],
+        "authentication": ["#dwn-sig"],
+        "verificationMethod": [
+          {
+            "id": "#dwn-sig",
+            "type": "JsonWebKey2020",
+            "controller": "did:ion:EiAFstcguyQzE90I1uqLRga_i1YgN7urCuf2nESRlV-Avw",
+            "publicKeyJwk": {
+              "x": "tYhyEctG6MKXKpWR_MPnBtag9MAFnG8nMu6H6e71zDQ",
+              "crv": "Ed25519",
+              "kty": "OKP"
+            }
+          },
+          {
+            "id": "#dwn-enc",
+            "type": "JsonWebKey2020",
+            "controller": "did:ion:EiAFstcguyQzE90I1uqLRga_i1YgN7urCuf2nESRlV-Avw",
+            "publicKeyJwk": {
+              "x": "yGQ8fLfVfE2QIc8RWd6czfjbGE59Eh9afffvL4zErcU",
+              "y": "OTcXckLAlLBjx7P8B7cBQQBNmRQIljylRhlPkzyJC0o",
+              "crv": "secp256k1",
+              "kty": "EC"
+            }
+          }
+        ],
+        "alsoKnownAs": [
+          "https://example.com/users/exampleuser",
+          "mailto:user.example@abaxx.tech",
+          "did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+        ]
+      },
+      "canonicalId": "did:ion:EiAFstcguyQzE90I1uqLRga_i1YgN7urCuf2nESRlV-Avw"
+    }
+  }
+} 
