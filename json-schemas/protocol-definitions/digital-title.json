@@ -1,0 +1,136 @@
+{
+  "protocol": "https://schemas.abaxx.tech/digital-title/v1",
+  "published": true,
+  "types": {
+    "titleRecord": {
+      "schema": "https://schemas.abaxx.tech/digital-title/schemas/title-record",
+      "dataFormats": [
+        "application/json"
+      ]
+    },
+    "transferRequest": {
+      "schema": "https://schemas.abaxx.tech/digital-title/schemas/transfer-request",
+      "dataFormats": [
+        "application/json"
+      ]
+    },
+    "transferApproval": {
+      "schema": "https://schemas.abaxx.tech/digital-title/schemas/transfer-approval",
+      "dataFormats": [
+        "application/json"
+      ]
+    },
+    "titleHistory": {
+      "schema": "https://schemas.abaxx.tech/digital-title/schemas/title-history",
+      "dataFormats": [
+        "application/json"
+      ]
+    },
+    "lien": {
+      "schema": "https://schemas.abaxx.tech/digital-title/schemas/lien",
+      "dataFormats": [
+        "application/json"
+      ]
+    },
+    "appraisal": {
+      "schema": "https://schemas.abaxx.tech/digital-title/schemas/appraisal",
+      "dataFormats": [
+        "application/json"
+      ]
+    },
+    "supportingDocument": {
+      "schema": "https://schemas.abaxx.tech/digital-title/schemas/supporting-document",
+      "dataFormats": [
+        "application/json",
+        "application/pdf",
+        "image/jpeg",
+        "image/png"
+      ]
+    }
+  },
+  "structure": {
+    "titleRecord": {
+      "$actions": [
+        {
+          "who": "anyone",
+          "can": "read"
+        },
+        {
+          "who": "author",
+          "can": "write"
+        }
+      ],
+      "transferRequest": {
+        "$actions": [
+          {
+            "who": "anyone",
+            "can": "read"
+          },
+          {
+            "who": "anyone",
+            "can": "write"
+          }
+        ],
+        "transferApproval": {
+          "$actions": [
+            {
+              "who": "recipient",
+              "of": "titleRecord",
+              "can": "write"
+            }
+          ]
+        }
+      },
+      "titleHistory": {
+        "$actions": [
+          {
+            "who": "anyone",
+            "can": "read"
+          },
+          {
+            "who": "author",
+            "of": "titleRecord",
+            "can": "write"
+          }
+        ]
+      },
+      "lien": {
+        "$actions": [
+          {
+            "who": "anyone",
+            "can": "read"
+          },
+          {
+            "who": "anyone",
+            "can": "write"
+          }
+        ]
+      },
+      "appraisal": {
+        "$actions": [
+          {
+            "who": "anyone",
+            "can": "read"
+          },
+          {
+            "who": "anyone",
+            "can": "write"
+          }
+        ]
+      },
+      "supportingDocument": {
+        "$actions": [
+          {
+            "who": "anyone",
+            "can": "read"
+          },
+          {
+            "who": "author",
+            "of": "titleRecord",
+            "can": "write"
+          }
+        ]
+      }
+    }
+  }
+} 

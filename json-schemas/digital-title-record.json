@@ -1,0 +1,374 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.abaxx.tech/digital-title/schemas/title-record",
+  "title": "Digital Title Record",
+  "description": "A schema for representing digital titles for various assets including real estate, vehicles, intellectual property, and other owned assets",
+  "type": "object",
+  "properties": {
+    "titleId": {
+      "type": "string",
+      "description": "Unique identifier for the title",
+      "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/uuid"
+    },
+    "titleType": {
+      "type": "string",
+      "enum": [
+        "real-estate",
+        "vehicle",
+        "intellectual-property",
+        "financial-instrument",
+        "artwork",
+        "digital-asset",
+        "business-entity",
+        "equipment",
+        "other"
+      ],
+      "description": "Type of asset being titled"
+    },
+    "asset": {
+      "type": "object",
+      "description": "Detailed information about the asset",
+      "properties": {
+        "identifier": {
+          "type": "string",
+          "description": "Asset-specific identifier (VIN, patent number, property tax ID, etc.)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable name or title of the asset"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the asset"
+        },
+        "category": {
+          "type": "string",
+          "description": "Subcategory or classification within the title type"
+        },
+        "specifications": {
+          "type": "object",
+          "description": "Asset-specific technical specifications",
+          "additionalProperties": true
+        },
+        "location": {
+          "type": "object",
+          "description": "Physical or legal location of the asset",
+          "properties": {
+            "address": {
+              "type": "string"
+            },
+            "city": {
+              "type": "string"
+            },
+            "state": {
+              "type": "string"
+            },
+            "country": {
+              "type": "string"
+            },
+            "postalCode": {
+              "type": "string"
+            },
+            "coordinates": {
+              "type": "object",
+              "properties": {
+                "latitude": {
+                  "type": "number",
+                  "minimum": -90,
+                  "maximum": 90
+                },
+                "longitude": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                }
+              }
+            },
+            "jurisdiction": {
+              "type": "string",
+              "description": "Legal jurisdiction governing the asset"
+            }
+          }
+        }
+      },
+      "required": ["identifier", "name"]
+    },
+    "ownership": {
+      "type": "object",
+      "description": "Current ownership information",
+      "properties": {
+        "owner": {
+          "type": "object",
+          "description": "Current owner details",
+          "properties": {
+            "did": {
+              "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/did",
+              "description": "DID of the current owner"
+            },
+            "name": {
+              "type": "string",
+              "description": "Legal name of the owner"
+            },
+            "type": {
+              "type": "string",
+              "enum": ["individual", "corporation", "partnership", "trust", "government", "other"],
+              "description": "Type of owner entity"
+            },
+            "contactInfo": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email"
+                },
+                "phone": {
+                  "type": "string"
+                },
+                "address": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": ["did"]
+        },
+        "coOwners": {
+          "type": "array",
+          "description": "Additional owners if jointly owned",
+          "items": {
+            "type": "object",
+            "properties": {
+              "did": {
+                "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/did"
+              },
+              "name": {
+                "type": "string"
+              },
+              "ownershipPercentage": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              }
+            },
+            "required": ["did"]
+          }
+        },
+        "acquisitionDate": {
+          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/date-time",
+          "description": "Date ownership was acquired"
+        },
+        "acquisitionMethod": {
+          "type": "string",
+          "enum": ["purchase", "inheritance", "gift", "creation", "court-order", "other"],
+          "description": "How ownership was acquired"
+        },
+        "purchasePrice": {
+          "type": "object",
+          "description": "Purchase price information",
+          "properties": {
+            "amount": {
+              "type": "number",
+              "minimum": 0
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$",
+              "description": "ISO 4217 currency code"
+            }
+          }
+        }
+      },
+      "required": ["owner", "acquisitionDate"]
+    },
+    "legal": {
+      "type": "object",
+      "description": "Legal information and restrictions",
+      "properties": {
+        "issuingAuthority": {
+          "type": "object",
+          "description": "Government or authority that issued/recognizes the title",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "jurisdiction": {
+              "type": "string"
+            },
+            "did": {
+              "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/did",
+              "description": "DID of the issuing authority if available"
+            },
+            "registrationNumber": {
+              "type": "string",
+              "description": "Official registration or certificate number"
+            }
+          },
+          "required": ["name", "jurisdiction"]
+        },
+        "restrictions": {
+          "type": "array",
+          "description": "Legal restrictions on the title",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["zoning", "easement", "covenant", "lien", "encumbrance", "other"]
+              },
+              "description": {
+                "type": "string"
+              },
+              "expirationDate": {
+                "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/date-time"
+              }
+            },
+            "required": ["type", "description"]
+          }
+        },
+        "transferability": {
+          "type": "object",
+          "description": "Rules governing transfer of the title",
+          "properties": {
+            "isTransferable": {
+              "type": "boolean"
+            },
+            "requiresApproval": {
+              "type": "boolean",
+              "description": "Whether transfers require third-party approval"
+            },
+            "approvalAuthority": {
+              "type": "string",
+              "description": "Entity that must approve transfers"
+            },
+            "restrictions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": ["isTransferable"]
+        }
+      },
+      "required": ["issuingAuthority"]
+    },
+    "valuation": {
+      "type": "object",
+      "description": "Current valuation information",
+      "properties": {
+        "assessedValue": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "number",
+              "minimum": 0
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            },
+            "assessmentDate": {
+              "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/date-time"
+            },
+            "assessor": {
+              "type": "string",
+              "description": "Entity that performed the assessment"
+            }
+          },
+          "required": ["amount", "currency", "assessmentDate"]
+        },
+        "marketValue": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "number",
+              "minimum": 0
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            },
+            "valuationDate": {
+              "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/date-time"
+            },
+            "valuationMethod": {
+              "type": "string",
+              "enum": ["appraisal", "market-comparison", "algorithmic", "other"]
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata and references",
+      "properties": {
+        "created": {
+          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/date-time",
+          "description": "When this title record was created"
+        },
+        "lastUpdated": {
+          "$ref": "https://identity.foundation/dwn/json-schemas/defs.json#/$defs/date-time",
+          "description": "When this title record was last updated"
+        },
+        "version": {
+          "type": "string",
+          "description": "Version of this title record"
+        },
+        "precedingTitleId": {
+          "type": "string",
+          "description": "ID of the previous title record if this is an update"
+        },
+        "relatedDocuments": {
+          "type": "array",
+          "description": "References to supporting documents",
+          "items": {
+            "type": "object",
+            "properties": {
+              "documentType": {
+                "type": "string",
+                "enum": ["deed", "certificate", "appraisal", "survey", "insurance", "other"]
+              },
+              "documentId": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": ["documentType"]
+          }
+        },
+        "alsoKnownAs": {
+          "type": "array",
+          "description": "Alternative identifiers for this title or asset",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "tags": {
+          "type": "array",
+          "description": "Searchable tags for categorization",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["created", "version"]
+    }
+  },
+  "required": [
+    "titleId",
+    "titleType", 
+    "asset",
+    "ownership",
+    "legal",
+    "metadata"
+  ],
+  "additionalProperties": false
+} 

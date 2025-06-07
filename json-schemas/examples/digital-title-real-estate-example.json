@@ -1,0 +1,137 @@
+{
+  "titleId": "550e8400-e29b-41d4-a716-446655440000",
+  "titleType": "real-estate",
+  "asset": {
+    "identifier": "TAX-ID-2024-001234567",
+    "name": "123 Maple Street Residential Property",
+    "description": "Single-family residential home with 3 bedrooms, 2 bathrooms, and attached garage",
+    "category": "single-family-residential",
+    "specifications": {
+      "yearBuilt": 1995,
+      "squareFootage": 2400,
+      "lotSize": "0.25 acres",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "garage": "2-car attached",
+      "constructionType": "wood-frame",
+      "heatingType": "forced-air gas",
+      "cooling": "central-air"
+    },
+    "location": {
+      "address": "123 Maple Street",
+      "city": "Springfield",
+      "state": "Illinois",
+      "country": "United States",
+      "postalCode": "62701",
+      "coordinates": {
+        "latitude": 39.7817,
+        "longitude": -89.6501
+      },
+      "jurisdiction": "Sangamon County, Illinois"
+    }
+  },
+  "ownership": {
+    "owner": {
+      "did": "did:ion:EiAFstcguyQzE90I1uqLRga_i1YgN7urCuf2nESRlV-Avw",
+      "name": "John Doe",
+      "type": "individual",
+      "contactInfo": {
+        "email": "john.doe@example.com",
+        "phone": "+1-555-0123",
+        "address": "123 Maple Street, Springfield, IL 62701"
+      }
+    },
+    "coOwners": [
+      {
+        "did": "did:ion:EiBVpjUxXHADuNmBiCUqF6r8uFtJNRAUAjJKHFMEUvpUgg",
+        "name": "Jane Doe",
+        "ownershipPercentage": 50
+      }
+    ],
+    "acquisitionDate": "2023-06-15T14:30:00.000000Z",
+    "acquisitionMethod": "purchase",
+    "purchasePrice": {
+      "amount": 350000,
+      "currency": "USD"
+    }
+  },
+  "legal": {
+    "issuingAuthority": {
+      "name": "Sangamon County Recorder of Deeds",
+      "jurisdiction": "Sangamon County, Illinois, USA",
+      "registrationNumber": "DOC-2023-004567"
+    },
+    "restrictions": [
+      {
+        "type": "covenant",
+        "description": "Property must maintain residential use only",
+        "expirationDate": null
+      },
+      {
+        "type": "easement", 
+        "description": "Utility easement along eastern property line",
+        "expirationDate": null
+      }
+    ],
+    "transferability": {
+      "isTransferable": true,
+      "requiresApproval": false,
+      "restrictions": [
+        "Subject to local zoning laws",
+        "Must comply with HOA regulations if applicable"
+      ]
+    }
+  },
+  "valuation": {
+    "assessedValue": {
+      "amount": 320000,
+      "currency": "USD",
+      "assessmentDate": "2024-01-01T00:00:00.000000Z",
+      "assessor": "Sangamon County Assessor's Office"
+    },
+    "marketValue": {
+      "amount": 365000,
+      "currency": "USD",
+      "valuationDate": "2024-03-15T10:00:00.000000Z",
+      "valuationMethod": "appraisal"
+    }
+  },
+  "metadata": {
+    "created": "2023-06-16T09:15:30.000000Z",
+    "lastUpdated": "2024-03-15T10:30:00.000000Z",
+    "version": "1.2",
+    "precedingTitleId": null,
+    "relatedDocuments": [
+      {
+        "documentType": "deed",
+        "documentId": "deed-2023-004567",
+        "description": "Warranty Deed from Smith Family Trust to John and Jane Doe",
+        "url": "https://records.sangamoncounty.il.gov/deed/2023-004567"
+      },
+      {
+        "documentType": "survey",
+        "documentId": "survey-2023-0123",
+        "description": "Property boundary survey conducted June 2023",
+        "url": "https://surveys.example.com/2023-0123"
+      },
+      {
+        "documentType": "appraisal",
+        "documentId": "appraisal-2024-0089",
+        "description": "Professional property appraisal March 2024",
+        "url": "https://appraisals.example.com/2024-0089"
+      }
+    ],
+    "alsoKnownAs": [
+      "https://zillow.com/homedetails/123-Maple-St-Springfield-IL-62701/123456789_zpid/",
+      "https://realtor.com/realestateandhomes-detail/123-Maple-St_Springfield_IL_62701_M12345-67890",
+      "property-id:sangamon-county:2024:001234567"
+    ],
+    "tags": [
+      "residential",
+      "single-family",
+      "springfield-il",
+      "3-bedroom",
+      "investment-property"
+    ]
+  }
+} 
