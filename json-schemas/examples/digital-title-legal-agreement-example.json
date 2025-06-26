@@ -1,0 +1,229 @@
+{
+  "titleId": "770f9510-e29b-41d4-a716-446655440002",
+  "titleType": "legal-agreement",
+  "asset": {
+    "identifier": "TRUST-INDENTURE-XCO-ABAXX-2024-001",
+    "name": "Gold Collateral Trust Indenture and Margin Lending Agreement",
+    "description": "Trust arrangement where Xco pledges gold bars as collateral to Abaxx Technologies Inc. for a margin lending facility using blockchain technology",
+    "category": "trust-indenture-collateral-agreement",
+    "specifications": {
+      "agreementType": "hybrid-security-trust-arrangement",
+      "collateralType": "gold-bars",
+      "facilityType": "margin-lending-line-of-credit",
+      "technologyImplementation": "blockchain-smart-contracts",
+      "governingLaw": "Barbados",
+      "documentLength": "150+ pages",
+      "keyProvisions": [
+        "Trust establishment and security interest",
+        "Blockchain technology implementation",
+        "Margin lending facility",
+        "Default and remedies",
+        "Digital asset rights management"
+      ]
+    },
+    "location": {
+      "jurisdiction": "Barbados",
+      "governingCourt": "Barbados High Court",
+      "applicableLaw": "Barbados Commercial Law"
+    }
+  },
+  "ownership": {
+    "trustor": {
+      "did": "did:dht:EiCFstcguyQzE90I1uqLRga_i1YgN7urCuf2nESRlV-Xco",
+      "name": "Xco",
+      "type": "corporation",
+      "role": "borrower-trustor",
+      "contactInfo": {
+        "email": "legal@xco.com",
+        "address": "Xco Corporate Headquarters"
+      }
+    },
+    "trustee": {
+      "did": "did:dht:EiAFstcguyQzE90I1uqLRga_i1YgN7urCuf2nESRlV-Abx",
+      "name": "Abaxx Technologies Inc.",
+      "type": "corporation",
+      "role": "lender-trustee",
+      "contactInfo": {
+        "email": "legal@abaxx.com",
+        "address": "Abaxx Technologies Corporate Office"
+      }
+    },
+    "executionDate": "2024-01-15T10:00:00.000000Z",
+    "effectiveDate": "2024-01-15T10:00:00.000000Z"
+  },
+  "legal": {
+    "issuingAuthority": {
+      "name": "Barbados Corporate Registry",
+      "jurisdiction": "Barbados",
+      "registrationNumber": "TRUST-2024-XCO-ABAXX-001"
+    },
+    "collateralDetails": {
+      "assetType": "gold-bars",
+      "storageLocation": "qualified-vault-facility",
+      "digitalRightsManagement": "blockchain-tokens",
+      "valuationMethod": "market-price-oracles",
+      "insuranceRequired": true
+    },
+    "restrictions": [
+      {
+        "type": "security-interest",
+        "description": "Gold bars pledged as collateral, subject to UCC filings",
+        "perfectionMethod": "UCC-1-filing-and-blockchain-registration"
+      },
+      {
+        "type": "margin-requirements",
+        "description": "Loan-to-value ratio must be maintained per agreement terms",
+        "maintenanceThreshold": "specified-in-line-of-credit-agreement"
+      }
+    ],
+    "transferability": {
+      "isTransferable": false,
+      "requiresApproval": true,
+      "approvalAuthority": "both-parties-mutual-consent",
+      "restrictions": [
+        "Assignment requires written consent of both parties",
+        "Subject to regulatory approvals",
+        "Must maintain collateral perfection"
+      ]
+    }
+  },
+  "valuation": {
+    "collateralValue": {
+      "baseAsset": "gold-bars",
+      "valuationMethod": "real-time-market-pricing",
+      "currency": "USD",
+      "lastValuation": "2024-05-15T14:30:00.000000Z",
+      "valuationFrequency": "continuous-monitoring"
+    },
+    "creditFacility": {
+      "maxCreditLine": "defined-in-schedule-a",
+      "currency": "USD",
+      "interestRate": "as-per-line-of-credit-agreement",
+      "marginCallThreshold": "specified-ltv-ratio"
+    }
+  },
+  "technology": {
+    "blockchainImplementation": {
+      "tokenization": "digital-asset-rights-representation",
+      "smartContracts": "automated-enforcement-mechanisms",
+      "oracles": "gold-price-feeds-and-vault-verification",
+      "keyManagement": "secure-multi-signature-controls",
+      "governance": "upgrade-and-dispute-resolution-procedures"
+    },
+    "securityProtocols": {
+      "accessControls": "role-based-permissions",
+      "auditTrail": "immutable-transaction-records",
+      "failsafeMechanisms": "traditional-legal-fallback-procedures"
+    }
+  },
+  "metadata": {
+    "created": "2024-01-15T10:30:00.000000Z",
+    "lastUpdated": "2024-05-15T14:20:00.000000Z",
+    "version": "1.0",
+    "precedingAgreementId": null,
+    "relatedDocuments": [
+      {
+        "documentType": "line-of-credit-agreement",
+        "documentId": "schedule-a-loc-agreement",
+        "description": "Schedule A - Line of Credit Agreement with commercial terms",
+        "relationship": "integrated-facility-terms"
+      },
+      {
+        "documentType": "advance-request-form",
+        "documentId": "exhibit-1-advance-form",
+        "description": "Exhibit 1 - Advance Request Form template",
+        "relationship": "operational-procedure"
+      },
+      {
+        "documentType": "ucc-filing",
+        "documentId": "ucc-1-filing-2024-001",
+        "description": "UCC-1 financing statement for security interest perfection",
+        "relationship": "legal-perfection"
+      },
+      {
+        "documentType": "vault-agreement",
+        "documentId": "gold-storage-vault-agreement",
+        "description": "Qualified vault facility storage agreement for gold bars",
+        "relationship": "collateral-custody"
+      }
+    ],
+    "sections": [
+      {
+        "number": 1,
+        "title": "Definitions",
+        "description": "Precise meanings for legal, technical, and financial terms"
+      },
+      {
+        "number": 2,
+        "title": "Grant of Trust and Security Interest", 
+        "description": "Transfer of gold bars as collateral and perfection procedures"
+      },
+      {
+        "number": 3,
+        "title": "Core Technology Implementation",
+        "description": "Blockchain and smart contract technical framework"
+      },
+      {
+        "number": 4,
+        "title": "Rights and Obligations of Parties",
+        "description": "Detailed obligations and rights for trustor and trustee"
+      },
+      {
+        "number": 5,
+        "title": "Margin Lending",
+        "description": "Line of credit mechanics, margin calls, and lending procedures"
+      },
+      {
+        "number": 6,
+        "title": "Default and Remedies",
+        "description": "Default events and available remedies including collateral liquidation"
+      },
+      {
+        "number": 7,
+        "title": "Termination",
+        "description": "Agreement termination procedures and collateral release"
+      },
+      {
+        "number": 8,
+        "title": "Representations and Warranties",
+        "description": "Legal promises by both parties regarding authority and compliance"
+      },
+      {
+        "number": 9,
+        "title": "Indemnification",
+        "description": "Allocation of responsibility for losses and claims"
+      },
+      {
+        "number": 10,
+        "title": "Miscellaneous",
+        "description": "Governing law, dispute resolution, and general provisions"
+      },
+      {
+        "number": 11,
+        "title": "Execution",
+        "description": "Signature blocks for legal binding"
+      }
+    ],
+    "alsoKnownAs": [
+      "xco-abaxx-gold-collateral-trust-2024",
+      "margin-lending-blockchain-agreement-001",
+      "digital-gold-rights-trust-indenture"
+    ],
+    "tags": [
+      "trust-indenture",
+      "gold-collateral",
+      "margin-lending",
+      "blockchain-implementation",
+      "security-agreement",
+      "digital-asset-rights",
+      "barbados-law",
+      "smart-contracts",
+      "collateral-management"
+    ],
+    "confidentiality": {
+      "level": "confidential",
+      "restrictions": "Not to be disseminated outside authorized group",
+      "accessPassword": "Cft#$78"
+    }
+  }
+} 
