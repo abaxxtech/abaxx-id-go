@@ -42,6 +42,10 @@ func getDefaultGateway() gateway {
 	return defaultGateway
 }
 
+func SetDefaultGateway(url string, client *http.Client) {
+	defaultGateway = pkarr.NewClient(url, client)
+}
+
 // CreateOption is the type returned from each individual option function
 type CreateOption func(*createOptions)
 
