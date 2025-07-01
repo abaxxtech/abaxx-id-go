@@ -42,6 +42,10 @@ func getDefaultGateway() gateway {
 	return defaultGateway
 }
 
+// This is primarily for testing, so we can subsitute a fake http client that can
+// work entirely in memory.  Other parts of the did code will call getDefaultGateway
+// once and cache that, which means this has to be called early, and only once,
+// subsequent values won't be used all the time.
 func SetDefaultGateway(url string, client *http.Client) {
 	once.Do(func() {} ) // consume the once, but still force set the defaultGateway.
 	defaultGateway = pkarr.NewClient(url, client)
