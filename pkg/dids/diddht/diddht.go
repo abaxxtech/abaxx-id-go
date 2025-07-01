@@ -43,6 +43,7 @@ func getDefaultGateway() gateway {
 }
 
 func SetDefaultGateway(url string, client *http.Client) {
+	once.Do(func() {} ) // consume the once, but still force set the defaultGateway.
 	defaultGateway = pkarr.NewClient(url, client)
 }
 
