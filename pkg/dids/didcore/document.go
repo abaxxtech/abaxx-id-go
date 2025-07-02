@@ -33,7 +33,7 @@ const (
 // A DID Document can be retrieved by resolving a DID URI.
 type Document struct {
 	// Context is a URI that defines the schema version used in the document.
-	Context []string `json:"@context,omitempty"`
+	Context []interface{} `json:"@context,omitempty"`
 
 	// Id is the DID URI for a particular DID subject, expressed using the id property in the DID document.
 	ID string `json:"id"`
@@ -279,7 +279,9 @@ type Service struct {
 
 	// ServiceEndpoint is a network address, such as an HTTP URL, at which services
 	// operate on behalf of a DID subject.
-	ServiceEndpoint []string `json:"serviceEndpoint"`
+	// A service endpoint can also be a structure with more internal details, such as
+	// which keys to use, what the nodes are, and more!
+	ServiceEndpoint interface{} `json:"serviceEndpoint"`
 }
 
 // VerificationMethod expresses verification methods, such as cryptographic

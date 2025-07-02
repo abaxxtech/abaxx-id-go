@@ -123,7 +123,15 @@ func TestCreate(t *testing.T) {
 			var opts []CreateOption
 			opts = []CreateOption{Gateway(relay.URL, http.DefaultClient), KeyManager(keyMgr)}
 			for _, service := range didDoc.Service {
-				opts = append(opts, Service(service.ID, service.Type, service.ServiceEndpoint...))
+				// ServiceEndpoint is []interface{}, let's convert it to a string:
+				services := make([]string, 0)
+				svcs := service.ServiceEndpoint.([]interface{})
+				for _, svc := range svcs {
+					if svcstr, ok := svc.(string); ok {
+						services = append(services, svcstr)
+					}
+				}
+				opts = append(opts, Service(service.ID, service.Type, services...))
 			}
 			for _, key := range test.keys {
 				opts = append(opts, PrivateKey(key.algorithmID, key.purposes...))

@@ -121,7 +121,7 @@ func (r Resolver) Resolve(uri string) (didcore.ResolutionResult, error) {
 
 func createDocument(did did.DID, publicKey jwk.JWK) didcore.Document {
 	doc := didcore.Document{
-		Context: []string{"https://www.w3.org/ns/did/v1"},
+		Context: []interface{}{"https://www.w3.org/ns/did/v1"},
 		ID:      did.URI,
 	}
 

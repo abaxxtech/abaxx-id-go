@@ -198,7 +198,7 @@ func CreateWithContext(ctx context.Context, opts ...CreateOption) (did.BearerDID
 	}
 
 	document := didcore.Document{
-		Context:            []string{"https://www.w3.org/ns/did/v1"},
+		Context:            []interface{}{"https://www.w3.org/ns/did/v1"},
 		ID:                 bdid.URI,
 		Service:            []didcore.Service{},
 		VerificationMethod: []didcore.VerificationMethod{},

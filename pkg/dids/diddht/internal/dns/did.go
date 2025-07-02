@@ -160,13 +160,16 @@ func MarshalVerificationMethod(vm *didcore.VerificationMethod) (string, error) {
 
 // MarshalService packs a service into a TXT DNS resource record and adds to the DNS message Answers
 func MarshalService(dhtDNSkey string, s didcore.Service, msg *dnsmessage.Message) error {
-	rawData := fmt.Sprintf("id=%s;t=%s;se=%s", s.ID, s.Type, strings.Join(s.ServiceEndpoint, ","))
+	services, ok := s.ServiceEndpoint.([]string)
+	if ok {
+		rawData := fmt.Sprintf("id=%s;t=%s;se=%s", s.ID, s.Type, strings.Join(services, ","))
 
-	resource, err := newResource(fmt.Sprintf("_%s._did.", dhtDNSkey), rawData)
-	if err != nil {
-		return err
+		resource, err := newResource(fmt.Sprintf("_%s._did.", dhtDNSkey), rawData)
+		if err != nil {
+			return err
+		}
+		msg.Answers = append(msg.Answers, resource)
 	}
-	msg.Answers = append(msg.Answers, resource)
 	return nil
 }
 
